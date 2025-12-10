@@ -93,7 +93,7 @@ function App() {
 
   return (
     <div style={{ padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
-      <h1>나의 블로그</h1>
+     
 
       {currentPost ? (
         <div>
