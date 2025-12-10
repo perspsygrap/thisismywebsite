@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 
 function App() {
+  const API_BASE = "https://thisismywebsite-fin.onrender.com";
+
   const [posts, setPosts] = useState([]);
   const [currentPost, setCurrentPost] = useState(null);
   const [newPost, setNewPost] = useState({ title: "", content: "" });
@@ -9,14 +11,14 @@ function App() {
 
   // 글 목록 불러오기
   const fetchPosts = async () => {
-    const res = await fetch("http://localhost:3001/posts");
+    const res = await fetch(`${API_BASE}/posts`);
     const data = await res.json();
     setPosts(data);
   };
 
   // 특정 글 상세
   const fetchPostDetail = async (id) => {
-    const res = await fetch(`http://localhost:3001/posts/${id}`);
+    const res = await fetch(`${API_BASE}/posts/${id}`);
     const data = await res.json();
     setCurrentPost(data);
   };
@@ -24,7 +26,7 @@ function App() {
   // 글 작성
   const createPost = async () => {
     if (!newPost.title || !newPost.content) return;
-    await fetch("http://localhost:3001/posts", {
+    await fetch(`${API_BASE}/posts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newPost),
@@ -36,7 +38,7 @@ function App() {
   // 댓글 작성
   const createComment = async (postId) => {
     if (!newComment) return;
-    await fetch(`http://localhost:3001/posts/${postId}/comments`, {
+    await fetch(`${API_BASE}/posts/${postId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content: newComment }),
@@ -48,7 +50,7 @@ function App() {
   // 글 삭제
   const deletePost = async (id) => {
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
-    await fetch(`http://localhost:3001/posts/${id}`, { method: "DELETE" });
+    await fetch(`${API_BASE}/posts/${id}`, { method: "DELETE" });
     setCurrentPost(null);
     fetchPosts();
   };
@@ -60,17 +62,26 @@ function App() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://localhost:3001/upload", { method: "POST", body: formData });
+      const res = await fetch(`${API_BASE}/upload`, {
+        method: "POST",
+        body: formData,
+      });
       if (!res.ok) throw new Error("업로드 실패");
+
       const data = await res.json();
       const url = data.url;
+
       let tag = "";
       if (file.type.startsWith("image/")) {
         tag = `<img src="${url}" alt="image" style="max-width:100%; height:auto;" />`;
       } else if (file.type.startsWith("video/")) {
         tag = `<video src="${url}" controls style="max-width:100%; height:auto;"></video>`;
       }
-      setNewPost((prev) => ({ ...prev, content: prev.content + "\n" + tag + "\n" }));
+
+      setNewPost((prev) => ({
+        ...prev,
+        content: prev.content + "\n" + tag + "\n",
+      }));
     } catch (err) {
       console.error("파일 업로드 중 오류:", err);
     }
@@ -88,17 +99,23 @@ function App() {
         <div>
           <div style={{ marginBottom: "10px" }}>
             <button onClick={() => setCurrentPost(null)}>← 목록으로 돌아가기</button>
-            <button onClick={() => deletePost(currentPost.post.id)} style={{ marginLeft: "10px", color: "red" }}>
+            <button
+              onClick={() => deletePost(currentPost.post.id)}
+              style={{ marginLeft: "10px", color: "red" }}
+            >
               삭제
             </button>
           </div>
+
           <h2>{currentPost.post.title}</h2>
           <div dangerouslySetInnerHTML={{ __html: currentPost.post.content }} />
           <hr />
+
           <h3>댓글</h3>
           {currentPost.comments.map((c) => (
             <p key={c.id}>- {c.content}</p>
           ))}
+
           <input
             placeholder="댓글 작성..."
             value={newComment}
@@ -122,22 +139,37 @@ function App() {
             onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
             style={{ width: "100%", height: "120px" }}
           />
+
           <input
             type="file"
             accept="image/*,video/mp4,image/gif"
             onChange={async (e) => await uploadFile(e.target.files[0])}
             style={{ marginTop: "10px", marginBottom: "10px" }}
           />
+
           <button onClick={createPost}>글 등록</button>
 
           <hr />
           <h2>글 목록</h2>
           {posts.map((post) => (
-            <div key={post.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <p style={{ cursor: "pointer", color: "blue", margin: 0 }} onClick={() => fetchPostDetail(post.id)}>
+            <div
+              key={post.id}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <p
+                style={{ cursor: "pointer", color: "blue", margin: 0 }}
+                onClick={() => fetchPostDetail(post.id)}
+              >
                 {post.title}
               </p>
-              <button onClick={() => deletePost(post.id)} style={{ color: "red" }}>
+              <button
+                onClick={() => deletePost(post.id)}
+                style={{ color: "red" }}
+              >
                 삭제
               </button>
             </div>
