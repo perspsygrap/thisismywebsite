@@ -1,5 +1,6 @@
 // App.js
 import React, { useState, useEffect } from "react";
+import Linkify from "react-linkify";
 
 function App() {
   const API_BASE = "https://thisismywebsite-fin.onrender.com";
@@ -93,8 +94,6 @@ function App() {
 
   return (
     <div style={{ padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
-     
-
       {currentPost ? (
         <div>
           <div style={{ marginBottom: "10px" }}>
@@ -108,9 +107,17 @@ function App() {
           </div>
 
           <h2>{currentPost.post.title}</h2>
-          <div dangerouslySetInnerHTML={{ __html: currentPost.post.content }} />
-          <hr />
+          <Linkify
+            componentDecorator={(href, text, key) => (
+              <a href={href} key={key} target="_blank" rel="noopener noreferrer">
+                {text}
+              </a>
+            )}
+          >
+            <div dangerouslySetInnerHTML={{ __html: currentPost.post.content }} />
+          </Linkify>
 
+          <hr />
           <h3>댓글</h3>
           {currentPost.comments.map((c) => (
             <p key={c.id}>- {c.content}</p>
