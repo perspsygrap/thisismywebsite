@@ -1,52 +1,115 @@
-/* --- 전체 기본 스타일 (원하면 삭제해도 됨) --- */
-.App {
-  text-align: center;
+/* 전체 컨테이너 */
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* ------------------------------------- */
+/* 1. 홈 화면 */
+/* ------------------------------------- */
+
+.home-screen {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  width: 100%;
+  height: 100%;
+}
+
+.home-category-btn {
+  flex: 1; /* 33.33%씩 정확히 */
+  font-size: 2.3rem; /* 기존보다 +7pt 느낌 */
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: 0.3s;
+  color: inherit;
+}
+
+.home-category-btn:hover {
+  opacity: 0.5;
+}
+
+/* 관리자 로그인 숨김 */
+.hidden-admin-btn {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: transparent;
+  color: transparent;
+  border: none;
+  cursor: pointer;
+  user-select: text;
+}
+
+.hidden-admin-btn::selection {
   color: white;
+  background: blue;
 }
 
-/* ============================= */
-/*       🔥 탭 메뉴 스타일       */
-/* ============================= */
 
-/* 탭 전체 컨테이너 */
-.tabs {
+/* ------------------------------------- */
+/* 2. 카테고리 화면 */
+/* ------------------------------------- */
+
+.category-screen {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #ddd;
-  padding-bottom: 10px;
+  width: 100%;
+  height: 100%;
 }
 
-/* 각 탭 버튼 */
-.tab-btn {
+/* 왼쪽 90% */
+.post-view {
+  width: 90%;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.back-btn {
   background: none;
   border: none;
-  padding: 8px 16px;
-  font-size: 16px;
+  font-size: 1rem;
   cursor: pointer;
-  color: #555;
-  border-radius: 6px;
-  transition: 0.2s;
+  margin-bottom: 10px;
 }
 
-/* Hover 시 효과 */
-.tab-btn:hover {
-  background: #f0f0f0;
+/* 오른쪽 10% 목록 */
+.post-list {
+  width: 10%;
+  border-left: 1px solid #ddd;
+  overflow-y: auto;
+  padding: 10px;
+  font-size: 0.85rem;
 }
 
-/* 선택된(active) 탭 */
-.tab-btn.active {
+/* 목록 아이템 */
+.post-item {
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+.post-item-title {
   font-weight: bold;
-  color: black;
-  background: #e5e5e5;
+  margin-bottom: 3px;
+}
+
+.post-item-preview {
+  font-size: 0.75rem;
+  color: #555;
+}
+
+/* 글 내용 */
+.post-detail {
+  padding-right: 20px;
+}
+
+.post-content {
+  white-space: normal;
+  line-height: 1.5;
+  margin-top: 15px;
+}
+
+/* 글 없음 */
+.empty-post {
+  width: 100%;
+  height: 100%;
 }
