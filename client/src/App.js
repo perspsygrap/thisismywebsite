@@ -28,7 +28,7 @@ function App() {
   // 관리자 로그인
   const loginAdmin = () => {
     const pw = prompt("관리자 비밀번호를 입력하세요");
-    if (pw === "너가정한비밀번호") {
+    if (pw === "flapiki") {
       localStorage.setItem("adminToken", "my-secret-admin");
       setIsAdmin(true);
       alert("관리자 모드 ON");
