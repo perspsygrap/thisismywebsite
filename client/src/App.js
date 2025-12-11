@@ -120,7 +120,7 @@ function App() {
           {/* 본문 렌더링 수정 */}
           <div dangerouslySetInnerHTML={renderContent(currentPost.post.content)} />
           <hr />
-          
+
           <h3>댓글</h3>
           {currentPost.comments.map((c) => (
             <p key={c.id}>- {c.content}</p>
