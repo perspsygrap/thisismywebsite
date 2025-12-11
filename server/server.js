@@ -55,12 +55,8 @@ app.post("/upload", upload.single("file"), (req, res) => {
 
 // 글 작성 (파일 URL 포함)
 app.post("/posts", (req, res) => {
-  const { title, content } = req.body;
-  const newPost = {
-    id: postId++,
-    title,
-    content,
-  };
+  const { title, content, category } = req.body;
+  const newPost =  { id: postId++, title, content, category: category || "match" };
   posts.push(newPost);
   comments[newPost.id] = [];
   res.json({ success: true });
