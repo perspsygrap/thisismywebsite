@@ -1,12 +1,20 @@
 // client/src/App.js
 import React, { useState, useEffect } from "react";
 import linkifyHtml from "linkify-html";
+import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { db } from "./firebase"; // Firebase 초기화 파일
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+} from "firebase/firestore";
 
-// Firebase import
-import { collection, addDoc, getDocs, query, orderBy, doc, deleteDoc } from "firebase/firestore";
-import { db } from "./firebase"; // firebase.js import
-
-// 카테고리
+// 카테고리 목록
 const CATEGORIES = [
   { key: "match", label: "match!" },
   { key: "tcc", label: "TCC" },
@@ -20,81 +28,62 @@ const makePreview = (content) => {
 };
 
 function App() {
-  // 관리자 모드
   const [isAdmin, setIsAdmin] = useState(false);
-  useEffect(() => {
-    const token = localStorage.getItem("adminToken");
-    if (token === "my-secret-admin") setIsAdmin(true);
-  }, []);
 
-  const loginAdmin = () => {
+  // 글/댓글 상태
+  const [posts, setPosts] = useState([]);
+  const [currentPost, setCurrentPost] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("match");
+  const [newPost, setNewPost] = useState({ title: "", content: "", category: "match" });
+  const [newComment, setNewComment] = useState("");
+
+  const auth = getAuth();
+
+  // ===============================
+  // 관리자 로그인
+  // ===============================
+  const loginAdmin = async () => {
     const pw = prompt("관리자 비밀번호를 입력하세요");
-    if (pw === "flapiki") {
-      localStorage.setItem("adminToken", "my-secret-admin");
+    try {
+      await signInWithEmailAndPassword(auth, "towercrane@complex.com", pw);
       setIsAdmin(true);
       alert("관리자 모드 ON");
-    } else {
+    } catch (error) {
       alert("비밀번호 틀림");
     }
   };
 
-  const logoutAdmin = () => {
-    localStorage.removeItem("adminToken");
+  const logoutAdmin = async () => {
+    await signOut(auth);
     setIsAdmin(false);
     alert("관리자 모드 OFF");
   };
 
-  // 상태
-  const [posts, setPosts] = useState([]);
-  const [currentPost, setCurrentPost] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("match");
-  const [newPost, setNewPost] = useState({
-    title: "",
-    content: "",
-    category: "match",
-  });
-  const [newComment, setNewComment] = useState("");
-
   // ===============================
-  // Firestore 연결된 함수
+  // Firestore 데이터 처리
   // ===============================
-
-  // 글 목록 불러오기
   const fetchPosts = async () => {
     try {
-      const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const postsData = await Promise.all(
-        querySnapshot.docs.map(async (docSnap) => {
-          const postData = { id: docSnap.id, ...docSnap.data() };
-          // 댓글 불러오기
-          const commentsSnapshot = await getDocs(
-            collection(db, "posts", docSnap.id, "comments")
-          );
-          postData.comments = commentsSnapshot.docs.map((c) => ({
-            id: c.id,
-            ...c.data(),
-          }));
-          return postData;
-        })
+      const q = query(
+        collection(db, "posts"),
+        where("category", "==", selectedCategory),
+        orderBy("createdAt", "desc")
       );
-      setPosts(postsData);
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setPosts(data);
     } catch (err) {
       console.error("fetchPosts error:", err);
     }
   };
 
-  // 글 작성
   const createPost = async () => {
     if (!newPost.title || !newPost.content) return;
     try {
       await addDoc(collection(db, "posts"), {
-        title: newPost.title,
-        content: newPost.content,
-        category: selectedCategory,
+        ...newPost,
         createdAt: new Date(),
       });
-
       setNewPost({ title: "", content: "", category: selectedCategory });
       fetchPosts();
     } catch (err) {
@@ -102,29 +91,11 @@ function App() {
     }
   };
 
-  // 글 삭제
-  const deletePostHandler = async (id) => {
-    if (!isAdmin) return alert("관리자만 삭제 가능");
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
-    try {
-      // 댓글도 함께 삭제
-      const commentsSnapshot = await getDocs(collection(db, "posts", id, "comments"));
-      for (const c of commentsSnapshot.docs) {
-        await deleteDoc(doc(db, "posts", id, "comments", c.id));
-      }
-      await deleteDoc(doc(db, "posts", id));
-      if (currentPost && currentPost.id === id) setCurrentPost(null);
-      fetchPosts();
-    } catch (err) {
-      console.error("deletePost error:", err);
-    }
-  };
-
-  // 댓글 작성
   const createComment = async (postId) => {
     if (!newComment) return;
     try {
-      await addDoc(collection(db, "posts", postId, "comments"), {
+      const commentsRef = collection(db, "posts", postId, "comments");
+      await addDoc(commentsRef, {
         content: newComment,
         createdAt: new Date(),
       });
@@ -135,58 +106,37 @@ function App() {
     }
   };
 
-  // 파일 업로드
-  const uploadFile = async (file) => {
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
+  const deletePost = async (id) => {
+    if (!isAdmin) return alert("관리자만 삭제 가능");
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
     try {
-      const res = await fetch(`https://thisismywebsite-fin.onrender.com/upload`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("업로드 실패");
-
-      const data = await res.json();
-      const url = data.url;
-
-      let tag = "";
-      if (file.type.startsWith("image/")) {
-        tag = `<img src="${url}" style="max-width:100%; height:auto;" />`;
-      } else if (file.type.startsWith("video/")) {
-        tag = `<video src="${url}" controls style="max-width:100%; height:auto;"></video>`;
-      }
-
-      setNewPost((prev) => ({
-        ...prev,
-        content: prev.content + "\n" + tag + "\n",
-      }));
+      await deleteDoc(doc(db, "posts", id));
+      setCurrentPost(null);
+      fetchPosts();
     } catch (err) {
-      console.error("upload error:", err);
+      console.error("deletePost error:", err);
     }
   };
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [selectedCategory]);
 
   // ===============================
   // 렌더링 도우미
   // ===============================
-  const renderContent = (content) => ({
-    __html: linkifyHtml(content || "", { target: "_blank", rel: "noopener" }),
-  });
+  const renderContent = (content) => {
+    const html = linkifyHtml(content || "", { target: "_blank", rel: "noopener" });
+    return { __html: html };
+  };
 
-  const filteredPosts = posts
-    .filter((p) => (p.category ? p.category : "match") === selectedCategory)
-    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-    .map((p) => ({ ...p, _shortContent: makePreview(p.content) }));
+  const filteredPosts = posts.map((p) => ({
+    ...p,
+    _shortContent: makePreview(p.content),
+  }));
 
   // ===============================
-  // UI
+  // UI 구조
   // ===============================
   return (
     <div style={{ padding: 20 }}>
@@ -205,10 +155,7 @@ function App() {
           <button
             key={c.key}
             className={selectedCategory === c.key ? "active" : ""}
-            onClick={() => {
-              setSelectedCategory(c.key);
-              setNewPost((prev) => ({ ...prev, category: c.key }));
-            }}
+            onClick={() => setSelectedCategory(c.key)}
           >
             {c.label}
           </button>
@@ -221,40 +168,33 @@ function App() {
           {isAdmin && (
             <div style={{ marginBottom: 24, border: "1px solid #ddd", padding: 12, borderRadius: 8 }}>
               <h3>새 글 작성 ({selectedCategory})</h3>
-
               <input
                 placeholder="제목"
                 value={newPost.title}
                 onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
                 style={{ width: "100%", padding: 8, marginBottom: 8 }}
               />
-
               <textarea
                 placeholder="내용"
                 value={newPost.content}
                 onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
                 style={{ width: "100%", minHeight: 120, padding: 8 }}
               />
-
               <div style={{ display: "flex", gap: 8 }}>
-                <input type="file" accept="image/*,video/mp4,image/gif" onChange={(e) => uploadFile(e.target.files[0])} />
                 <button onClick={createPost}>글 등록</button>
               </div>
             </div>
           )}
 
+          {/* 글 목록 상세 */}
           {currentPost ? (
             <div>
               <button onClick={() => setCurrentPost(null)}>← 목록으로</button>
               <h2>{currentPost.title}</h2>
               <div dangerouslySetInnerHTML={renderContent(currentPost.content)} />
-
-              {/* 댓글 */}
               <hr />
               <h4>댓글</h4>
-              {currentPost.comments.map((c) => (
-                <p key={c.id}>- {c.content}</p>
-              ))}
+              {currentPost.comments?.map((c, idx) => <p key={idx}>- {c.content}</p>)}
               <input
                 placeholder="댓글 작성…"
                 value={newComment}
@@ -270,11 +210,10 @@ function App() {
           )}
         </div>
 
-        {/* 우측: 글 목록 (두 번째 페이지에서만) */}
+        {/* 우측: 글 목록 */}
         <div style={{ flex: 1.4, borderLeft: "1px solid #ddd", paddingLeft: 20, height: "100vh", overflowY: "auto" }}>
           <h3>글 목록</h3>
           {filteredPosts.length === 0 && <p>아직 글이 없습니다.</p>}
-
           {filteredPosts.map((post) => (
             <div
               key={post.id}
@@ -283,12 +222,11 @@ function App() {
             >
               <p style={{ fontWeight: 600, marginBottom: 6 }}>{post.title}</p>
               <div style={{ fontSize: 13, color: "#555" }} dangerouslySetInnerHTML={renderContent(post._shortContent)} />
-
               {isAdmin && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    deletePostHandler(post.id);
+                    deletePost(post.id);
                   }}
                   style={{ color: "red", marginTop: 8 }}
                 >
