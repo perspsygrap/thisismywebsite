@@ -1,8 +1,7 @@
 // client/src/App.js
 import React, { useState, useEffect } from "react";
 import linkifyHtml from "linkify-html";
-import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { db } from "./firebase"; // Firebase 초기화 파일
+import { auth, db } from "./firebase"; // Firebase 초기화
 import {
   collection,
   addDoc,
@@ -10,9 +9,11 @@ import {
   doc,
   deleteDoc,
   query,
-  where,
   orderBy,
+  getDoc,
+  getDocsFromCache,
 } from "firebase/firestore";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 // 카테고리 목록
 const CATEGORIES = [
@@ -33,11 +34,9 @@ function App() {
   // 글/댓글 상태
   const [posts, setPosts] = useState([]);
   const [currentPost, setCurrentPost] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("match");
-  const [newPost, setNewPost] = useState({ title: "", content: "", category: "match" });
+  const [selectedCategory, setSelectedCategory] = useState("match!!");
+  const [newPost, setNewPost] = useState({ title: "", content: "", category: "match!!" });
   const [newComment, setNewComment] = useState("");
-
-  const auth = getAuth();
 
   // ===============================
   // 관리자 로그인
@@ -66,7 +65,6 @@ function App() {
     try {
       const q = query(
         collection(db, "posts"),
-        where("category", "==", selectedCategory),
         orderBy("createdAt", "desc")
       );
       const snapshot = await getDocs(q);
@@ -130,10 +128,9 @@ function App() {
     return { __html: html };
   };
 
-  const filteredPosts = posts.map((p) => ({
-    ...p,
-    _shortContent: makePreview(p.content),
-  }));
+  const filteredPosts = posts
+    .filter((p) => p.category === selectedCategory)
+    .map((p) => ({ ...p, _shortContent: makePreview(p.content) }));
 
   // ===============================
   // UI 구조
@@ -155,7 +152,10 @@ function App() {
           <button
             key={c.key}
             className={selectedCategory === c.key ? "active" : ""}
-            onClick={() => setSelectedCategory(c.key)}
+            onClick={() => {
+              setSelectedCategory(c.key);
+              setNewPost((prev) => ({ ...prev, category: c.key }));
+            }}
           >
             {c.label}
           </button>
