@@ -24,7 +24,7 @@ const storage = new CloudinaryStorage({
   params: async (req, file) => {
     let resource_type = "image";
     if (file.mimetype.startsWith("video/")) resource_type = "video";
-    if (file.mimetype === "image/gif") resource_type = "image"; // GIF는 image로 처리
+    if (file.mimetype === "image/gif") resource_type = "image";
     return {
       folder: "my-blog",
       resource_type: resource_type,
@@ -34,15 +34,13 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
-// 임시 DB
+// ----------------- 임시 DB -----------------
 let posts = [];
 let comments = {};
 let postId = 1;
 let commentId = 1;
 
-// ----------------- 라우트 -----------------
-
-// 파일 업로드 (이미지, GIF, MP4)
+// ----------------- 업로드 -----------------
 app.post("/upload", upload.single("file"), (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
@@ -53,45 +51,64 @@ app.post("/upload", upload.single("file"), (req, res) => {
   }
 });
 
-// 글 작성 (파일 URL 포함)
+// ----------------- 글 작성 -----------------
 app.post("/posts", (req, res) => {
   const { title, content, category } = req.body;
-  const newPost =  { id: postId++, title, content, category: category || "match" };
+
+  const newPost = {
+    id: postId++,
+    title,
+    content,
+    category: category || "match", // 기본 match
+  };
+
   posts.push(newPost);
   comments[newPost.id] = [];
-  res.json({ success: true });
+
+  res.json({ success: true, post: newPost });
 });
 
-// 글 삭제
+// ----------------- 글 삭제 -----------------
 app.delete("/posts/:id", (req, res) => {
   const id = Number(req.params.id);
-  // posts 배열에서 해당 글 제거
   posts = posts.filter((p) => p.id !== id);
-  // 댓글도 같이 제거
   delete comments[id];
   res.json({ success: true });
 });
 
-
-// 글 목록
+// ----------------- 글 목록 (카테고리 필터 추가) -----------------
 app.get("/posts", (req, res) => {
-  const simplePosts = posts.map((p) => ({ id: p.id, title: p.title }));
-  res.json(simplePosts);
+  const category = req.query.category;
+
+  let result = posts;
+
+  if (category) {
+    result = result.filter((p) => (p.category || "match") === category);
+  }
+
+  res.json(result);
 });
 
-// 글 상세
+// ----------------- 글 상세 -----------------
 app.get("/posts/:id", (req, res) => {
   const id = Number(req.params.id);
   const post = posts.find((p) => p.id === id);
-  res.json({ post, comments: comments[id] || [] });
+
+  res.json({
+    post,
+    comments: comments[id] || [],
+  });
 });
 
-// 댓글 작성
+// ----------------- 댓글 작성 -----------------
 app.post("/posts/:id/comments", (req, res) => {
   const id = Number(req.params.id);
   const { content } = req.body;
+
   const newComment = { id: commentId++, content };
+
   comments[id].push(newComment);
+
   res.json({ success: true });
 });
 
