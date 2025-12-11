@@ -1,6 +1,7 @@
 // App.js
 import React, { useState, useEffect } from "react";
-import Linkify from "react-linkify";
+import linkifyHtml from "linkifyjs/html"; // 추가
+
 
 function App() {
   const API_BASE = "https://thisismywebsite-fin.onrender.com";
@@ -92,6 +93,15 @@ function App() {
     fetchPosts();
   }, []);
 
+   // 본문 렌더링 시 linkify 적용
+  const renderContent = (content) => {
+    const htmlWithLinks = linkifyHtml(content, {
+      target: "_blank", // 클릭 시 새 탭
+      rel: "noopener",
+    });
+    return { __html: htmlWithLinks };
+  };
+
   return (
     <div style={{ padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
       {currentPost ? (
@@ -107,17 +117,10 @@ function App() {
           </div>
 
           <h2>{currentPost.post.title}</h2>
-          <Linkify
-            componentDecorator={(href, text, key) => (
-              <a href={href} key={key} target="_blank" rel="noopener noreferrer">
-                {text}
-              </a>
-            )}
-          >
-            <div dangerouslySetInnerHTML={{ __html: currentPost.post.content }} />
-          </Linkify>
-
+          {/* 본문 렌더링 수정 */}
+          <div dangerouslySetInnerHTML={renderContent(currentPost.post.content)} />
           <hr />
+          
           <h3>댓글</h3>
           {currentPost.comments.map((c) => (
             <p key={c.id}>- {c.content}</p>
