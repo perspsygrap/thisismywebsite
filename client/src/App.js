@@ -64,10 +64,20 @@ function App() {
     try {
       const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(q);
-      const postsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const postsData = await Promise.all(
+        querySnapshot.docs.map(async (docSnap) => {
+          const postData = { id: docSnap.id, ...docSnap.data() };
+          // 댓글 불러오기
+          const commentsSnapshot = await getDocs(
+            collection(db, "posts", docSnap.id, "comments")
+          );
+          postData.comments = commentsSnapshot.docs.map((c) => ({
+            id: c.id,
+            ...c.data(),
+          }));
+          return postData;
+        })
+      );
       setPosts(postsData);
     } catch (err) {
       console.error("fetchPosts error:", err);
@@ -86,7 +96,7 @@ function App() {
       });
 
       setNewPost({ title: "", content: "", category: selectedCategory });
-      fetchPosts(); // 글 목록 갱신
+      fetchPosts();
     } catch (err) {
       console.error("createPost error:", err);
     }
@@ -97,11 +107,65 @@ function App() {
     if (!isAdmin) return alert("관리자만 삭제 가능");
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
     try {
+      // 댓글도 함께 삭제
+      const commentsSnapshot = await getDocs(collection(db, "posts", id, "comments"));
+      for (const c of commentsSnapshot.docs) {
+        await deleteDoc(doc(db, "posts", id, "comments", c.id));
+      }
       await deleteDoc(doc(db, "posts", id));
       if (currentPost && currentPost.id === id) setCurrentPost(null);
       fetchPosts();
     } catch (err) {
       console.error("deletePost error:", err);
+    }
+  };
+
+  // 댓글 작성
+  const createComment = async (postId) => {
+    if (!newComment) return;
+    try {
+      await addDoc(collection(db, "posts", postId, "comments"), {
+        content: newComment,
+        createdAt: new Date(),
+      });
+      setNewComment("");
+      fetchPosts();
+    } catch (err) {
+      console.error("createComment error:", err);
+    }
+  };
+
+  // 파일 업로드
+  const uploadFile = async (file) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`https://thisismywebsite-fin.onrender.com/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("업로드 실패");
+
+      const data = await res.json();
+      const url = data.url;
+
+      let tag = "";
+      if (file.type.startsWith("image/")) {
+        tag = `<img src="${url}" style="max-width:100%; height:auto;" />`;
+      } else if (file.type.startsWith("video/")) {
+        tag = `<video src="${url}" controls style="max-width:100%; height:auto;"></video>`;
+      }
+
+      setNewPost((prev) => ({
+        ...prev,
+        content: prev.content + "\n" + tag + "\n",
+      }));
+    } catch (err) {
+      console.error("upload error:", err);
     }
   };
 
@@ -184,6 +248,20 @@ function App() {
               <button onClick={() => setCurrentPost(null)}>← 목록으로</button>
               <h2>{currentPost.title}</h2>
               <div dangerouslySetInnerHTML={renderContent(currentPost.content)} />
+
+              {/* 댓글 */}
+              <hr />
+              <h4>댓글</h4>
+              {currentPost.comments.map((c) => (
+                <p key={c.id}>- {c.content}</p>
+              ))}
+              <input
+                placeholder="댓글 작성…"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                style={{ width: "80%" }}
+              />
+              <button onClick={() => createComment(currentPost.id)}>댓글 등록</button>
             </div>
           ) : (
             <div style={{ opacity: 0.6 }}>
