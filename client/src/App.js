@@ -270,7 +270,7 @@ function App() {
           )}
         </div>
 
-        {/* 우측: 글 목록 */}
+        {/* 우측: 글 목록 (두 번째 페이지에서만) */}
         <div style={{ flex: 1.4, borderLeft: "1px solid #ddd", paddingLeft: 20, height: "100vh", overflowY: "auto" }}>
           <h3>글 목록</h3>
           {filteredPosts.length === 0 && <p>아직 글이 없습니다.</p>}
