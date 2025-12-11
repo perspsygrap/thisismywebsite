@@ -16,9 +16,9 @@ import {
 
 // 카테고리 목록
 const CATEGORIES = [
-  { key: "match", label: "match!" },
+  { key: "match!!", label: "match!!" },
   { key: "tcc", label: "TCC" },
-  { key: "hotline", label: "hotline" },
+  { key: "어서오세요", label: "어서오세요" },
 ];
 
 // 목록 미리보기
