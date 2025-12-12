@@ -233,7 +233,7 @@ useEffect(() => {
               }
               onClick={() => {
                 setSelectedCategory(c.key);
-                setViewLevel(2); // 2레벨 상세 화면으로 이동
+                setIsMain(false); // 2레벨 상세 화면으로 이동
               }}
             >
               {c.label}
