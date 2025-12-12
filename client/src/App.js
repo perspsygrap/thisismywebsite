@@ -41,30 +41,29 @@ function App() {
   const [newPost, setNewPost] = useState({ title: "", content: "", category: "match!!" });
   const [newComment, setNewComment] = useState("");
 
-  // ===============================
-  // 관리자 로그인
-  // ===============================
-  const loginAdmin = () => {
-    setShowLoginForm(true);
-  };
+ // ===============================
+// 관리자 로그인 (비밀번호만 입력)
+// ===============================
+const loginAdmin = async () => {
+  const pw = prompt("관리자 비밀번호를 입력하세요");
+  if (!pw) return;
 
-  const submitLogin = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-      setIsAdmin(true);
-      setShowLoginForm(false);
-      alert("관리자 모드 ON");
-    } catch (error) {
-      console.error(error);
-      alert("로그인 실패: " + error.code);
-    }
-  };
+  try {
+    await signInWithEmailAndPassword(auth, "towercrane@complex.com", pw);
+    setIsAdmin(true);
+    alert("관리자 모드 ON");
+  } catch (error) {
+    console.error(error);
+    alert("로그인 실패: " + error.code);
+  }
+};
+
 
   const logoutAdmin = async () => {
-    await signOut(auth);
-    setIsAdmin(false);
-    alert("관리자 모드 OFF");
-  };
+  await signOut(auth);
+  setIsAdmin(false);
+  alert("관리자 모드 OFF");
+};
 
   // ===============================
   // Firestore 데이터 처리
