@@ -148,27 +148,6 @@ const loginAdmin = async () => {
         )}
       </div>
 
-      {/* 이메일+비밀번호 로그인 폼 */}
-      {showLoginForm && !isAdmin && (
-        <div style={{ marginBottom: 16, padding: 12, border: "1px solid #ddd" }}>
-          <h3>관리자 로그인</h3>
-          <input
-            type="text"
-            placeholder="이메일"
-            value={loginEmail}
-            onChange={(e) => setLoginEmail(e.target.value)}
-            style={{ width: "100%", padding: 8, marginBottom: 8 }}
-          />
-          <input
-            type="password"
-            placeholder="비밀번호"
-            value={loginPassword}
-            onChange={(e) => setLoginPassword(e.target.value)}
-            style={{ width: "100%", padding: 8, marginBottom: 8 }}
-          />
-          <button onClick={submitLogin}>로그인</button>
-        </div>
-      )}
 
       {/* 탭 */}
       <div className="tabs" style={{ marginBottom: 20 }}>
