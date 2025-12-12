@@ -221,17 +221,19 @@ useEffect(() => {
           )}
         </div>
 
-        <div className="tabs" style={{ marginBottom: 20, display: "flex", gap: 8 }}>
+        {/* 1레벨 메인 화면 탭 영역 */}
+        <div className="top-tabs">
           {CATEGORIES.map((c) => (
             <button
               key={c.key}
-              onClick={() => handleCategoryClick(c.key)}
-              style={{
-                padding: "8px 12px",
-                borderRadius: 6,
-                border: "1px solid #ccc",
-                background: "#fff",
-                cursor: "pointer",
+              className={
+                selectedCategory === c.key
+                  ? "tab-btn active"
+                  : "tab-btn"
+              }
+              onClick={() => {
+                setSelectedCategory(c.key);
+                setViewLevel(2); // 2레벨 상세 화면으로 이동
               }}
             >
               {c.label}
@@ -241,7 +243,7 @@ useEffect(() => {
 
         {/* 메인 화면은 아주 심플: 탭과 로그인 버튼만 */}
         <div style={{ color: "#666", marginTop: 40 }}>
-          <p>카테고리를 선택하세요.</p>
+          
         </div>
       </div>
     );
