@@ -1,7 +1,7 @@
 // client/src/App.js
 import React, { useState, useEffect } from "react";
 import linkifyHtml from "linkify-html";
-import { auth, db } from "./firebase"; // Firebase 초기화
+import { auth, db } from "./firebase";
 import {
   collection,
   addDoc,
@@ -10,8 +10,6 @@ import {
   deleteDoc,
   query,
   orderBy,
-  getDoc,
-  getDocsFromCache,
 } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 
@@ -22,7 +20,7 @@ const CATEGORIES = [
   { key: "어서오세요", label: "어서오세요" },
 ];
 
-// 목록 미리보기
+// 목록 미리보기 함수
 const makePreview = (content) => {
   const plain = content.replace(/<[^>]+>/g, "").replace(/\n+/g, " ").trim();
   return plain.length > 120 ? plain.substring(0, 120) + " ..." : plain;
@@ -31,7 +29,12 @@ const makePreview = (content) => {
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // 글/댓글 상태
+  // 로그인 UI 상태
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  // 글 상태
   const [posts, setPosts] = useState([]);
   const [currentPost, setCurrentPost] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("match!!");
@@ -41,14 +44,19 @@ function App() {
   // ===============================
   // 관리자 로그인
   // ===============================
-  const loginAdmin = async () => {
-    const pw = prompt("관리자 비밀번호를 입력하세요");
+  const loginAdmin = () => {
+    setShowLoginForm(true);
+  };
+
+  const submitLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, "towercrane@complex.com", pw);
+      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       setIsAdmin(true);
+      setShowLoginForm(false);
       alert("관리자 모드 ON");
     } catch (error) {
-      alert("비밀번호 틀림");
+      console.error(error);
+      alert("로그인 실패: " + error.code);
     }
   };
 
@@ -63,10 +71,7 @@ function App() {
   // ===============================
   const fetchPosts = async () => {
     try {
-      const q = query(
-        collection(db, "posts"),
-        orderBy("createdAt", "desc")
-      );
+      const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setPosts(data);
@@ -120,9 +125,7 @@ function App() {
     fetchPosts();
   }, [selectedCategory]);
 
-  // ===============================
   // 렌더링 도우미
-  // ===============================
   const renderContent = (content) => {
     const html = linkifyHtml(content || "", { target: "_blank", rel: "noopener" });
     return { __html: html };
@@ -133,11 +136,11 @@ function App() {
     .map((p) => ({ ...p, _shortContent: makePreview(p.content) }));
 
   // ===============================
-  // UI 구조
+  // UI
   // ===============================
   return (
     <div style={{ padding: 20 }}>
-      {/* 관리자 버튼 */}
+      {/* 로그인/로그아웃 버튼 */}
       <div style={{ marginBottom: 16 }}>
         {!isAdmin ? (
           <button onClick={loginAdmin}>관리자 로그인</button>
@@ -145,6 +148,28 @@ function App() {
           <button onClick={logoutAdmin}>관리자 로그아웃</button>
         )}
       </div>
+
+      {/* 이메일+비밀번호 로그인 폼 */}
+      {showLoginForm && !isAdmin && (
+        <div style={{ marginBottom: 16, padding: 12, border: "1px solid #ddd" }}>
+          <h3>관리자 로그인</h3>
+          <input
+            type="text"
+            placeholder="이메일"
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
+            style={{ width: "100%", padding: 8, marginBottom: 8 }}
+          />
+          <input
+            type="password"
+            placeholder="비밀번호"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            style={{ width: "100%", padding: 8, marginBottom: 8 }}
+          />
+          <button onClick={submitLogin}>로그인</button>
+        </div>
+      )}
 
       {/* 탭 */}
       <div className="tabs" style={{ marginBottom: 20 }}>
@@ -163,7 +188,7 @@ function App() {
       </div>
 
       <div style={{ display: "flex", gap: 20 }}>
-        {/* 좌측: 글 작성/상세 */}
+        {/* 왼쪽: 글 작성 및 상세 */}
         <div style={{ flex: 4 }}>
           {isAdmin && (
             <div style={{ marginBottom: 24, border: "1px solid #ddd", padding: 12, borderRadius: 8 }}>
@@ -180,13 +205,10 @@ function App() {
                 onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
                 style={{ width: "100%", minHeight: 120, padding: 8 }}
               />
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={createPost}>글 등록</button>
-              </div>
+              <button onClick={createPost}>글 등록</button>
             </div>
           )}
 
-          {/* 글 목록 상세 */}
           {currentPost ? (
             <div>
               <button onClick={() => setCurrentPost(null)}>← 목록으로</button>
@@ -210,18 +232,28 @@ function App() {
           )}
         </div>
 
-        {/* 우측: 글 목록 */}
+        {/* 오른쪽: 글 목록 */}
         <div style={{ flex: 1.4, borderLeft: "1px solid #ddd", paddingLeft: 20, height: "100vh", overflowY: "auto" }}>
           <h3>글 목록</h3>
           {filteredPosts.length === 0 && <p>아직 글이 없습니다.</p>}
+
           {filteredPosts.map((post) => (
             <div
               key={post.id}
-              style={{ border: "1px solid #eee", padding: 12, borderRadius: 8, marginBottom: 10, cursor: "pointer" }}
+              style={{
+                border: "1px solid #eee",
+                padding: 12,
+                borderRadius: 8,
+                marginBottom: 10,
+                cursor: "pointer",
+              }}
               onClick={() => setCurrentPost(post)}
             >
               <p style={{ fontWeight: 600, marginBottom: 6 }}>{post.title}</p>
-              <div style={{ fontSize: 13, color: "#555" }} dangerouslySetInnerHTML={renderContent(post._shortContent)} />
+              <div
+                style={{ fontSize: 13, color: "#555" }}
+                dangerouslySetInnerHTML={renderContent(post._shortContent)}
+              />
               {isAdmin && (
                 <button
                   onClick={(e) => {
