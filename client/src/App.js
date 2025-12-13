@@ -66,7 +66,7 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
 }
 
 // =====================================================
-// 🔵 메인 페이지 (기존 isMain === true 부분)
+// 🔵 메인 페이지
 // =====================================================
 function MainPage() {
   const navigate = useNavigate();
@@ -89,24 +89,28 @@ function MainPage() {
 }
 
 // =====================================================
-// 🔵 상세 페이지 (기존 상세 화면 전체)
+// 🔵 상세 페이지
 // =====================================================
 function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
-const navigate = useNavigate();
-const { category } = useParams();
+  const navigate = useNavigate();
+  const { category } = useParams();
 
-const categoryInfo = CATEGORIES.find((c) => c.key === category);
-const isWelcome = category === "welcome";
+  const categoryInfo = CATEGORIES.find((c) => c.key === category);
+  const isWelcome = category === "welcome";
 
-const [currentPost, setCurrentPost] = useState(null);
-const [currentPostComments, setCurrentPostComments] = useState([]);
-const [newPost, setNewPost] = useState({ title: "", content: "" });
-const [newComment, setNewComment] = useState("");
+  const [currentPost, setCurrentPost] = useState(null);
+  const [currentPostComments, setCurrentPostComments] = useState([]);
+  const [newPost, setNewPost] = useState({ title: "", content: "" });
+  const [newComment, setNewComment] = useState("");
 
-const renderContent = (content) => {
-    const html = linkifyHtml(content || "", { target: "_blank" });
-    return { __html: html };
-  };
+  // ❗ 카테고리 검증 (핵심 수정 포인트)
+  if (!categoryInfo) {
+    return <p style={{ padding: 40 }}>존재하지 않는 카테고리입니다</p>;
+  }
+
+  const renderContent = (content) => ({
+    __html: linkifyHtml(content || "", { target: "_blank" }),
+  });
 
   const filteredPosts = posts
     .filter((p) => p.category === category)
@@ -118,6 +122,16 @@ const renderContent = (content) => {
     setCurrentPostComments(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
 
+  // 최초 진입 시 최신 글 자동 선택 (어서오세요 제외)
+  useEffect(() => {
+    if (isWelcome) return;
+    if (!currentPost && filteredPosts.length > 0) {
+      const latest = filteredPosts[0];
+      setCurrentPost(latest);
+      fetchCommentsForPost(latest.id);
+    }
+  }, [filteredPosts, currentPost, isWelcome]);
+
   const createPost = async () => {
     if (!isAdmin) return alert("관리자만 작성 가능");
     if (!newPost.title || !newPost.content) return alert("제목/내용 입력");
@@ -128,21 +142,10 @@ const renderContent = (content) => {
       createdAt: new Date(),
     });
 
-  setNewPost({ title: "", content: "" });
-  fetchPosts();
+    setNewPost({ title: "", content: "" });
+    fetchPosts();
   };
 
-      // 🔑 처음 진입 시 최신 글 자동 선택
-    useEffect(() => {
-    if (currentPost) return;
-    if (filteredPosts.length > 0) {
-    const latest = filteredPosts[0];
-    setCurrentPost(latest);
-    fetchCommentsForPost(latest.id);
-    }
-    }, [filteredPosts, currentPost]);
-
-  
   const createComment = async (postId) => {
     if (!newComment) return;
 
@@ -164,26 +167,22 @@ const renderContent = (content) => {
     fetchPosts();
   };
 
-  if (!category) {
-    return <p style={{ padding: 40 }}>존재하지 않는 카테고리</p>;
-  }
-
   return (
     <div style={{ padding: "60px 20px 20px" }}>
       <Header isAdmin={isAdmin} loginAdmin={loginAdmin} logoutAdmin={logoutAdmin} />
 
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
         <button onClick={() => navigate("/")}>← 목록으로</button>
-        <strong>{category.label}</strong>
+        <strong>{categoryInfo.label}</strong>
         <div style={{ width: 80 }} />
       </div>
 
       <div style={{ display: "flex", gap: 20 }}>
         {/* 왼쪽 */}
         <div style={{ flex: 5 }}>
-          {isAdmin && (
+          {isAdmin && !isWelcome && (
             <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, marginBottom: 16 }}>
-              <h3>새 글 작성 ({category.label})</h3>
+              <h3>새 글 작성 ({categoryInfo.label})</h3>
               <input
                 placeholder="제목"
                 value={newPost.title}
@@ -224,48 +223,48 @@ const renderContent = (content) => {
               </div>
             </>
           ) : (
-            <p style={{ color: "#666" }}>오른쪽에서 글을 선택하세요.</p>
+            !isWelcome && <p style={{ color: "#666" }}>오른쪽에서 글을 선택하세요.</p>
           )}
         </div>
 
-        {/* 오른쪽 목록 */}
-        {isWelcome && (
-        <div style={{ flex: 1, borderLeft: "1px solid #ddd", paddingLeft: 16 }}>
-          <h3>글 목록</h3>
-          {filteredPosts.map((p) => (
-            <div
-              key={p.id}
-              style={{
-                border: "1px solid #eee",
-                padding: 12,
-                borderRadius: 8,
-                marginBottom: 10,
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                setCurrentPost(p);
-                fetchCommentsForPost(p.id);
-              }}
-            >
-              <strong>{p.title}</strong>
+        {/* 오른쪽 목록: welcome 제외 */}
+        {!isWelcome && (
+          <div style={{ flex: 1, borderLeft: "1px solid #ddd", paddingLeft: 16 }}>
+            <h3>글 목록</h3>
+            {filteredPosts.map((p) => (
               <div
-                style={{ fontSize: 13, color: "#555", marginTop: 4 }}
-                dangerouslySetInnerHTML={renderContent(p._short)}
-              />
-              {isAdmin && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deletePost(p.id);
-                  }}
-                  style={{ marginTop: 8, color: "red" }}
-                >
-                  삭제
-                </button>
-              )}
-            </div>
-          ))}
-        </div> 
+                key={p.id}
+                style={{
+                  border: "1px solid #eee",
+                  padding: 12,
+                  borderRadius: 8,
+                  marginBottom: 10,
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  setCurrentPost(p);
+                  fetchCommentsForPost(p.id);
+                }}
+              >
+                <strong>{p.title}</strong>
+                <div
+                  style={{ fontSize: 13, color: "#555", marginTop: 4 }}
+                  dangerouslySetInnerHTML={renderContent(p._short)}
+                />
+                {isAdmin && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deletePost(p.id);
+                    }}
+                    style={{ marginTop: 8, color: "red" }}
+                  >
+                    삭제
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -273,7 +272,7 @@ const renderContent = (content) => {
 }
 
 // =====================================================
-// 🔵 App (상태/Firestore/관리자 유지)
+// 🔵 App
 // =====================================================
 function App() {
   const [posts, setPosts] = useState([]);
@@ -311,7 +310,7 @@ function App() {
     <Routes>
       <Route path="/" element={<MainPage />} />
       <Route
-        path="/category/:key"
+        path="/category/:category"
         element={
           <DetailPage
             posts={posts}
