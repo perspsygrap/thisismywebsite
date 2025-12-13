@@ -93,50 +93,37 @@ function MainPage() {
     function RichTextEditor({ content, setContent, isAdmin }) {
     const editorRef = React.useRef(null);
 
-    const insertHtmlAtCursor = (html) => {
-      const sel = window.getSelection();
-      if (!sel || !sel.rangeCount) return;
+    // 커서 위치에 HTML 삽입
+  const insertHtmlAtCursor = (html) => {
+    if (!editorRef.current) return;
 
-      const range = sel.getRangeAt(0);
-      range.deleteContents();
+    editorRef.current.focus();
 
-      const el = document.createElement("div");
-      el.innerHTML = html;
-      const frag = document.createDocumentFragment();
-      let node, lastNode;
-      while ((node = el.firstChild)) {
-        lastNode = frag.appendChild(node);
-      }
-      range.insertNode(frag);
+   // execCommand 방식 사용
+    document.execCommand("insertHTML", false, html);
+  };
 
-      if (lastNode) {
-        range.setStartAfter(lastNode);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
-    };
-
+  // 파일 업로드 시 처리 (이미지/동영상)
       const handleFiles = async (files) => {
-      for (let file of files) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const url = e.target.result;
-          if (file.type.startsWith("image/")) {
-            insertHtmlAtCursor(
-              `<img src="${url}" style="max-width:300px; display:block; margin:8px 0;"/>`
-            );
-          } else if (file.type.startsWith("video/")) {
-            insertHtmlAtCursor(
-              `<video src="${url}" controls style="max-width:300px; display:block; margin:8px 0;"></video>`
-            );
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    };
+    for (let file of files) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const url = e.target.result;
+        if (file.type.startsWith("image/")) {
+          insertHtmlAtCursor(
+            `<img src="${url}" style="max-width:300px; display:block; margin:8px 0;"/>`
+          );
+        } else if (file.type.startsWith("video/")) {
+          insertHtmlAtCursor(
+            `<video src="${url}" controls style="max-width:300px; display:block; margin:8px 0;"></video>`
+          );
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-    const handleDrop = (e) => {
+        const handleDrop = (e) => {
       e.preventDefault();
       if (!isAdmin) return;
       handleFiles(e.dataTransfer.files);
@@ -155,27 +142,27 @@ function MainPage() {
       }
     };
 
-      return (
-        <div
-          ref={editorRef}
-          contentEditable={isAdmin}
-          suppressContentEditableWarning
-          onInput={(e) => setContent(e.currentTarget.innerHTML)}
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          onPaste={handlePaste}
-          style={{
-            width: "100%",
-            minHeight: 150,
-            border: "1px solid #ddd",
-            padding: 8,
-            borderRadius: 6,
-            overflowY: "auto",
-          }}
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
-      );
-    }
+    return (
+      <div
+        ref={editorRef}
+        contentEditable={isAdmin}
+        suppressContentEditableWarning
+        onInput={(e) => setContent(e.currentTarget.innerHTML)} // props로 상태 업데이트
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+        onPaste={handlePaste}
+        style={{
+          width: "100%",
+          minHeight: 150,
+          border: "1px solid #ddd",
+          padding: 8,
+          borderRadius: 6,
+          overflowY: "auto",
+        }}
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    );
+  }
 
 // =====================================================
 // 🔵 상세 페이지
