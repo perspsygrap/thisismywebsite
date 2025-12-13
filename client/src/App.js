@@ -156,6 +156,11 @@ function MainPage() {
           ref={editorRef}
           contentEditable={isAdmin}
           suppressContentEditableWarning
+          onInput={(e) => {
+            const html = e.currentTarget.innerHTML;
+            console.log("RichTextEditor html:", html); // 디버깅용
+            setContent(html);
+          }}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onPaste={handlePaste}
@@ -167,6 +172,7 @@ function MainPage() {
             borderRadius: 6,
             overflowY: "auto",
           }}
+          dangerouslySetInnerHTML={{ __html: content }}
         />
       );
     }
