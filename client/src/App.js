@@ -269,7 +269,7 @@ const updatePost = async () => {
                 placeholder="내용"
                 value={newPost.content}
                 onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                style={{ width: "100%", minHeight: 120, padding: 16 }}
+                style={{ width: "100%", minHeight: 120, padding: 8 }}
               />
               <button onClick={createPost} style={{ marginTop: 8 }}>
                 글 등록
@@ -368,11 +368,11 @@ const updatePost = async () => {
               </div>
             ))}
               <div style={{ marginTop: 10 }}>
-                <input
+                <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="댓글…"
-                  style={{ width: "80%", padding: 12, minHeight: 36 }}
+                  style={{ width: "80%", padding: 12, minHeight: 6 }}
                 />
                 <button onClick={() => createComment(currentPost.id)} style={{ marginLeft: 6 }}>
                   등록
