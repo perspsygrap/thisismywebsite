@@ -89,103 +89,87 @@ function MainPage() {
   );
 }
 
-  // 🔹 본문 작성란 컴포넌트 예시
-  function RichTextEditor({ content, setContent, isAdmin }) {
-    const editorRef = React.useRef(null);
+    // 🔹 본문 작성란 컴포넌트
+    function RichTextEditor({ contentRef, isAdmin }) {
+      const editorRef = contentRef;
 
-    // 커서 위치에 HTML 삽입 (순서 유지 버전)
-    const insertHtmlAtCursor = (html) => {
-      const sel = window.getSelection();
-      if (!sel || !sel.rangeCount) return;
+      const insertHtmlAtCursor = (html) => {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return;
 
-      const range = sel.getRangeAt(0);
-      range.deleteContents();
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
 
-      const el = document.createElement("div");
-      el.innerHTML = html;
+        const el = document.createElement("div");
+        el.innerHTML = html;
+        const frag = document.createDocumentFragment();
+        let node, lastNode;
+        while ((node = el.firstChild)) {
+          lastNode = frag.appendChild(node);
+        }
+        range.insertNode(frag);
 
-      const frag = document.createDocumentFragment();
-      Array.from(el.childNodes).forEach((node) => {
-        frag.appendChild(node);
-      });
-
-      range.insertNode(frag);
-
-      // 커서 다음 위치로 이동
-      const lastNode = frag.lastChild;
-      if (lastNode) {
-        range.setStartAfter(lastNode);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
-    };
-
-  // 파일 업로드 시 처리 (이미지/동영상)
-  const handleFiles = async (files) => {
-    for (let file of files) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const url = e.target.result;
-        if (file.type.startsWith("image/")) {
-          insertHtmlAtCursor(
-            `<img src="${url}" style="max-width:300px; display:block; margin:8px 0;"/>`
-          );
-        } else if (file.type.startsWith("video/")) {
-          insertHtmlAtCursor(
-            `<video src="${url}" controls style="max-width:300px; display:block; margin:8px 0;"></video>`
-          );
+        if (lastNode) {
+          range.setStartAfter(lastNode);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
         }
       };
-      reader.readAsDataURL(file);
+
+      const handleFiles = async (files) => {
+        for (let file of files) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const url = e.target.result;
+            if (file.type.startsWith("image/")) {
+              insertHtmlAtCursor(`<img src="${url}" style="max-width:300px; display:block; margin:8px 0;"/>`);
+            } else if (file.type.startsWith("video/")) {
+              insertHtmlAtCursor(`<video src="${url}" controls style="max-width:300px; display:block; margin:8px 0;"></video>`);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      const handleDrop = (e) => {
+        e.preventDefault();
+        if (!isAdmin) return;
+        handleFiles(e.dataTransfer.files);
+      };
+
+      const handlePaste = (e) => {
+        if (!isAdmin) return;
+        const items = e.clipboardData.items;
+        const files = [];
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].kind === "file") files.push(items[i].getAsFile());
+        }
+        if (files.length > 0) {
+          e.preventDefault();
+          handleFiles(files);
+        }
+      };
+
+      return (
+        <div
+          ref={editorRef}
+          contentEditable={isAdmin}
+          suppressContentEditableWarning
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          onPaste={handlePaste}
+          style={{
+            width: "100%",
+            minHeight: 150,
+            border: "1px solid #ddd",
+            padding: 8,
+            borderRadius: 6,
+            overflowY: "auto",
+          }}
+        />
+      );
     }
-  };
-
-  // 드래그 & 드롭 이벤트
-  const handleDrop = (e) => {
-    e.preventDefault();
-    if (!isAdmin) return;
-    const files = e.dataTransfer.files;
-    handleFiles(files);
-  };
-
-  const handlePaste = (e) => {
-    if (!isAdmin) return;
-    const items = e.clipboardData.items;
-    const files = [];
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].kind === "file") {
-        files.push(items[i].getAsFile());
-      }
-    }
-    if (files.length > 0) {
-      e.preventDefault();
-      handleFiles(files);
-    }
-  };
-
-  return (
-    <div
-      ref={editorRef}
-      contentEditable={isAdmin}
-      suppressContentEditableWarning
-      onInput={(e) => setContent(e.currentTarget.innerHTML)}
-      onDrop={handleDrop}
-      onDragOver={(e) => e.preventDefault()}
-      onPaste={handlePaste}
-      style={{
-        width: "100%",
-        minHeight: 150,
-        border: "1px solid #ddd",
-        padding: 8,
-        borderRadius: 6,
-        overflowY: "auto",
-      }}
-      dangerouslySetInnerHTML={{ __html: content }}
-    />
-  );
-}
-
 
 // =====================================================
 // 🔵 상세 페이지
