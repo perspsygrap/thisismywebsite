@@ -52,7 +52,7 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
         position: "fixed",
         top: 0,
         right: 0,
-        padding: "10px 16px",
+        padding: "7px 16px",
         background: "white",
         zIndex: 999,
       }}
@@ -90,77 +90,77 @@ function MainPage() {
 }
 
     // 🔹 본문 작성란 컴포넌트
-    function RichTextEditor({ contentRef, isAdmin }) {
-      const editorRef = contentRef;
+    function RichTextEditor({ content, setContent, isAdmin }) {
+    const editorRef = React.useRef(null);
 
-      const insertHtmlAtCursor = (html) => {
-        const sel = window.getSelection();
-        if (!sel || !sel.rangeCount) return;
+    const insertHtmlAtCursor = (html) => {
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
 
-        const range = sel.getRangeAt(0);
-        range.deleteContents();
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
 
-        const el = document.createElement("div");
-        el.innerHTML = html;
-        const frag = document.createDocumentFragment();
-        let node, lastNode;
-        while ((node = el.firstChild)) {
-          lastNode = frag.appendChild(node);
-        }
-        range.insertNode(frag);
+      const el = document.createElement("div");
+      el.innerHTML = html;
+      const frag = document.createDocumentFragment();
+      let node, lastNode;
+      while ((node = el.firstChild)) {
+        lastNode = frag.appendChild(node);
+      }
+      range.insertNode(frag);
 
-        if (lastNode) {
-          range.setStartAfter(lastNode);
-          range.collapse(true);
-          sel.removeAllRanges();
-          sel.addRange(range);
-        }
-      };
+      if (lastNode) {
+        range.setStartAfter(lastNode);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    };
 
       const handleFiles = async (files) => {
-        for (let file of files) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const url = e.target.result;
-            if (file.type.startsWith("image/")) {
-              insertHtmlAtCursor(`<img src="${url}" style="max-width:300px; display:block; margin:8px 0;"/>`);
-            } else if (file.type.startsWith("video/")) {
-              insertHtmlAtCursor(`<video src="${url}" controls style="max-width:300px; display:block; margin:8px 0;"></video>`);
-            }
-          };
-          reader.readAsDataURL(file);
-        }
-      };
+      for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const url = e.target.result;
+          if (file.type.startsWith("image/")) {
+            insertHtmlAtCursor(
+              `<img src="${url}" style="max-width:300px; display:block; margin:8px 0;"/>`
+            );
+          } else if (file.type.startsWith("video/")) {
+            insertHtmlAtCursor(
+              `<video src="${url}" controls style="max-width:300px; display:block; margin:8px 0;"></video>`
+            );
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
 
-      const handleDrop = (e) => {
+    const handleDrop = (e) => {
+      e.preventDefault();
+      if (!isAdmin) return;
+      handleFiles(e.dataTransfer.files);
+    };
+
+    const handlePaste = (e) => {
+      if (!isAdmin) return;
+      const items = e.clipboardData.items;
+      const files = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === "file") files.push(items[i].getAsFile());
+      }
+      if (files.length > 0) {
         e.preventDefault();
-        if (!isAdmin) return;
-        handleFiles(e.dataTransfer.files);
-      };
-
-      const handlePaste = (e) => {
-        if (!isAdmin) return;
-        const items = e.clipboardData.items;
-        const files = [];
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].kind === "file") files.push(items[i].getAsFile());
-        }
-        if (files.length > 0) {
-          e.preventDefault();
-          handleFiles(files);
-        }
-      };
+        handleFiles(files);
+      }
+    };
 
       return (
         <div
           ref={editorRef}
           contentEditable={isAdmin}
           suppressContentEditableWarning
-          onInput={(e) => {
-            const html = e.currentTarget.innerHTML;
-            console.log("RichTextEditor html:", html); // 디버깅용
-            setContent(html);
-          }}
+          onInput={(e) => setContent(e.currentTarget.innerHTML)}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onPaste={handlePaste}
