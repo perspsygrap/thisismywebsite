@@ -92,7 +92,7 @@ function MainPage() {
 // 🔵 상세 페이지 (기존 상세 화면 전체)
 // =====================================================
 function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
-  const { key } = useParams();
+  const { category: categoryKey } = useParams();
   const isWelcome = category?.key === "welcome";
   const navigate = useNavigate();
 
@@ -101,7 +101,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [newPost, setNewPost] = useState({ title: "", content: "" });
   const [newComment, setNewComment] = useState("");
 
- const category = CATEGORIES.find((c) => c.key === key);
+ const category = CATEGORIES.find((c) => c.key === categoryKey);
 
   const renderContent = (content) => {
     const html = linkifyHtml(content || "", { target: "_blank" });
