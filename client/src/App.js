@@ -89,47 +89,52 @@ function MainPage() {
   );
 }
 
-// 🔹 본문 작성란 컴포넌트 예시
-function RichTextEditor({ content, setContent, isAdmin }) {
-  const editorRef = React.useRef(null);
+  // 🔹 본문 작성란 컴포넌트 예시
+  function RichTextEditor({ content, setContent, isAdmin }) {
+    const editorRef = React.useRef(null);
 
-  // 커서 위치에 HTML 삽입
-  const insertHtmlAtCursor = (html) => {
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return;
+    // 커서 위치에 HTML 삽입 (순서 유지 버전)
+    const insertHtmlAtCursor = (html) => {
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
 
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
 
-    const el = document.createElement("div");
-    el.innerHTML = html;
-    const frag = document.createDocumentFragment();
-    let node, lastNode;
-    while ((node = el.firstChild)) {
-      lastNode = frag.appendChild(node);
-    }
-    range.insertNode(frag);
+      const el = document.createElement("div");
+      el.innerHTML = html;
 
-    // 커서 다음 위치로 이동
-    if (lastNode) {
-      range.setStartAfter(lastNode);
-      range.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-  };
+      const frag = document.createDocumentFragment();
+      Array.from(el.childNodes).forEach((node) => {
+        frag.appendChild(node);
+      });
+
+      range.insertNode(frag);
+
+      // 커서 다음 위치로 이동
+      const lastNode = frag.lastChild;
+      if (lastNode) {
+        range.setStartAfter(lastNode);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    };
 
   // 파일 업로드 시 처리 (이미지/동영상)
   const handleFiles = async (files) => {
     for (let file of files) {
-      // 여기서는 예시로 FileReader 사용 (실제 서버 업로드 시 URL 반환 필요)
       const reader = new FileReader();
       reader.onload = (e) => {
         const url = e.target.result;
         if (file.type.startsWith("image/")) {
-          insertHtmlAtCursor(`<img src="${url}" style="max-width:300px; display:block; margin:8px 0;"/>`);
+          insertHtmlAtCursor(
+            `<img src="${url}" style="max-width:300px; display:block; margin:8px 0;"/>`
+          );
         } else if (file.type.startsWith("video/")) {
-          insertHtmlAtCursor(`<video src="${url}" controls style="max-width:300px; display:block; margin:8px 0;"></video>`);
+          insertHtmlAtCursor(
+            `<video src="${url}" controls style="max-width:300px; display:block; margin:8px 0;"></video>`
+          );
         }
       };
       reader.readAsDataURL(file);
