@@ -92,24 +92,24 @@ function MainPage() {
 // 🔵 상세 페이지 (기존 상세 화면 전체)
 // =====================================================
 function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
-  const { category } = useParams();
-  const isWelcome = category === "welcome";
-  const navigate = useNavigate();
+const navigate = useNavigate();
+const { category } = useParams();
 
-  const [currentPost, setCurrentPost] = useState(null);
-  const [currentPostComments, setCurrentPostComments] = useState([]);
-  const [newPost, setNewPost] = useState({ title: "", content: "" });
-  const [newComment, setNewComment] = useState("");
+const categoryInfo = CATEGORIES.find((c) => c.key === category);
+const isWelcome = category === "welcome";
 
-  const categoryInfo = CATEGORIES.find((c) => c.key === category);
+const [currentPost, setCurrentPost] = useState(null);
+const [currentPostComments, setCurrentPostComments] = useState([]);
+const [newPost, setNewPost] = useState({ title: "", content: "" });
+const [newComment, setNewComment] = useState("");
 
-  const renderContent = (content) => {
+const renderContent = (content) => {
     const html = linkifyHtml(content || "", { target: "_blank" });
     return { __html: html };
   };
 
   const filteredPosts = posts
-    .filter((p) => p.category === category )
+    .filter((p) => p.category === category)
     .map((p) => ({ ...p, _short: makePreview(p.content) }));
 
   const fetchCommentsForPost = async (postId) => {
@@ -124,25 +124,23 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
 
     await addDoc(collection(db, "posts"), {
       ...newPost,
-      category: category,
+      category,
       createdAt: new Date(),
     });
 
-    setNewPost({ title: "", content: "" });
-    fetchPosts();
+  setNewPost({ title: "", content: "" });
+  fetchPosts();
   };
 
-      useEffect(() => {
-    // 아직 아무 글도 선택 안 했고
+      // 🔑 처음 진입 시 최신 글 자동 선택
+    useEffect(() => {
     if (currentPost) return;
-
-    // 이 카테고리에 글이 하나라도 있으면
     if (filteredPosts.length > 0) {
-      const latest = filteredPosts[0]; // 이미 최신순 정렬 상태
-      setCurrentPost(latest);
-      fetchCommentsForPost(latest.id);
+    const latest = filteredPosts[0];
+    setCurrentPost(latest);
+    fetchCommentsForPost(latest.id);
     }
-  }, [filteredPosts, currentPost]);
+    }, [filteredPosts, currentPost]);
 
   
   const createComment = async (postId) => {
