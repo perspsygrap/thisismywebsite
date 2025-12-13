@@ -93,7 +93,7 @@ function MainPage() {
 // =====================================================
 function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const { key } = useParams();
-  const isWelcome = key === "welcome";
+  const isWelcome = category?.key === "welcome";
   const navigate = useNavigate();
 
   const [currentPost, setCurrentPost] = useState(null);
@@ -101,7 +101,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [newPost, setNewPost] = useState({ title: "", content: "" });
   const [newComment, setNewComment] = useState("");
 
-  const category = CATEGORIES.find((c) => c.key === key);
+ const category = CATEGORIES.find((c) => c.key === key);
 
   const renderContent = (content) => {
     const html = linkifyHtml(content || "", { target: "_blank" });
