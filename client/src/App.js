@@ -103,6 +103,8 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [newPost, setNewPost] = useState({ title: "", content: "" });
   const [newComment, setNewComment] = useState("");
 
+  const [isLeaving, setIsLeaving] = useState(false);
+
   const renderContent = (content) => ({
     __html: linkifyHtml(content || "", { target: "_blank" }),
   });
@@ -118,6 +120,8 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   };
 
   useEffect(() => {
+    if (isLeaving) return;
+    
     if (filteredPosts.length === 0) {
       setCurrentPost(null);
       return;
@@ -185,7 +189,15 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
       <Header isAdmin={isAdmin} loginAdmin={loginAdmin} logoutAdmin={logoutAdmin} />
 
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-        <button onClick={() => navigate("/")}>← 목록으로</button>
+              <button
+        onClick={() => {
+          setIsLeaving(true);
+          navigate("/");
+        }}
+      >
+        ← 목록으로
+      </button>
+
         <strong>{categoryInfo.label}</strong>
         <div style={{ width: 80 }} />
       </div>
