@@ -123,7 +123,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
 const visitorId = getVisitorId();
 
   const renderContent = (content) => ({
-    __html: linkifyHtml(content || "", { target: "_blank" }),
+    __html: linkifyHtml((content || "").replace(/\n/g, "<br>"), { target: "_blank" }),
   });
 
   const filteredPosts = posts
