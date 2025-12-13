@@ -250,32 +250,24 @@ const visitorId = getVisitorId();
     return <p style={{ padding: 40 }}>존재하지 않는 카테고리입니다</p>;
   }
 
-  const createPost = async () => {
+    const createPost = async () => {
     if (!isAdmin) return alert("관리자만 작성 가능");
-    if (!newPost.title || !newPost.content) return alert("제목/내용 입력");
 
-    // 1️⃣ 선택된 파일을 본문 HTML로 변환
-    let fileContent = "";
-    selectedFiles.forEach((f) => {
-      if (f.type.startsWith("image/") || f.type === "image/gif") {
-        fileContent += `<img src="${f.preview}" style="max-width:200px; display:block; margin-top:8px;" />`;
-      } else if (f.type === "video/mp4") {
-        fileContent += `<video src="${f.preview}" controls style="max-width:300px; display:block; margin-top:8px;"></video>`;
-      }
-    });
+    // RichTextEditor에서 최신 내용 가져오기
+    const content = newPost.content;
+    if (!newPost.title || !content) return alert("제목/내용 입력");
 
-    // 2️⃣ 본문 내용과 합쳐서 DB에 저장
     await addDoc(collection(db, "posts"), {
       ...newPost,
-      content: newPost.content + fileContent,
+      content,  // 최신 내용 사용
       category,
       createdAt: new Date(),
     });
 
     setNewPost({ title: "", content: "" });
-    setSelectedFiles([]); // 업로드 목록 초기화
     fetchPosts();
   };
+
 
   const handleFileChange = (e) => {
   const files = Array.from(e.target.files).map((f) => ({
