@@ -354,6 +354,7 @@ const updatePost = async () => {
                         dangerouslySetInnerHTML={renderContent(c.content)}
                       />
                       {c.visitorId === visitorId && (
+                      <>
                         <button
                           onClick={() => {
                             setEditingCommentId(c.id);
@@ -363,11 +364,18 @@ const updatePost = async () => {
                         >
                           수정
                         </button>
-                      )}
-                    </>
-                  )}
-                </div>
-              ))}
+                        <button
+                          onClick={() => deleteComment(c.id)}
+                          style={{ marginLeft: 4, fontSize: 12, color: "red" }}
+                        >
+                          삭제
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
 
 
               <div style={{ marginTop: 10 }}>
