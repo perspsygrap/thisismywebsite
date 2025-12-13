@@ -19,6 +19,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { updateDoc } from "firebase/firestore";
 
 // ------------------------------
 // 카테고리 목록 (기존 유지)
@@ -105,6 +106,11 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
 
   const [isLeaving, setIsLeaving] = useState(false);
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+
+
   const renderContent = (content) => ({
     __html: linkifyHtml(content || "", { target: "_blank" }),
   });
@@ -121,7 +127,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
 
   useEffect(() => {
     if (isLeaving) return;
-    
+
     if (filteredPosts.length === 0) {
       setCurrentPost(null);
       return;
@@ -184,6 +190,22 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
     fetchPosts();
   };
 
+const updatePost = async () => {
+  if (!editTitle || !editContent) {
+    alert("제목과 내용을 입력하세요");
+    return;
+  }
+
+  await updateDoc(doc(db, "posts", currentPost.id), {
+    title: editTitle,
+    content: editContent,
+    updatedAt: new Date(),
+  });
+
+  setIsEditing(false);
+  fetchPosts(); // 최신 글 다시 불러오기
+};
+
   return (
     <div style={{ padding: "60px 20px 20px" }}>
       <Header isAdmin={isAdmin} loginAdmin={loginAdmin} logoutAdmin={logoutAdmin} />
@@ -228,8 +250,51 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
 
           {currentPost ? (
             <>
-              <h2>{currentPost.title}</h2>
-              <div dangerouslySetInnerHTML={renderContent(currentPost.content)} />
+              {isAdmin && currentPost && (
+                <button
+                  onClick={() => {
+                    setIsEditing(true);
+                    setEditTitle(currentPost.title);
+                    setEditContent(currentPost.content);
+                  }}
+                  style={{ marginBottom: 12 }}
+                >
+                  수정
+                </button>
+              )}
+
+              {isEditing ? (
+                <>
+                  <input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    style={{ width: "100%", padding: 8, marginBottom: 8 }}
+                  />
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    style={{ width: "100%", minHeight: 150, padding: 8 }}
+                  />
+
+                  {isEditing && (
+                    <div style={{ marginTop: 8 }}>
+                      <button onClick={updatePost}>저장</button>
+                      <button
+                        onClick={() => setIsEditing(false)}
+                        style={{ marginLeft: 8 }}
+                      >
+                        취소
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h2>{currentPost.title}</h2>
+                  <div dangerouslySetInnerHTML={renderContent(currentPost.content)} />
+                </>
+              )}
+
               <hr />
               <h4>댓글</h4>
               {currentPostComments.map((c) => (
