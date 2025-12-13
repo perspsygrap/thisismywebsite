@@ -89,6 +89,99 @@ function MainPage() {
   );
 }
 
+// 🔹 본문 작성란 컴포넌트 예시
+function RichTextEditor({ content, setContent, isAdmin }) {
+  const editorRef = React.useRef(null);
+
+  // 커서 위치에 HTML 삽입
+  const insertHtmlAtCursor = (html) => {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+
+    const el = document.createElement("div");
+    el.innerHTML = html;
+    const frag = document.createDocumentFragment();
+    let node, lastNode;
+    while ((node = el.firstChild)) {
+      lastNode = frag.appendChild(node);
+    }
+    range.insertNode(frag);
+
+    // 커서 다음 위치로 이동
+    if (lastNode) {
+      range.setStartAfter(lastNode);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  };
+
+  // 파일 업로드 시 처리 (이미지/동영상)
+  const handleFiles = async (files) => {
+    for (let file of files) {
+      // 여기서는 예시로 FileReader 사용 (실제 서버 업로드 시 URL 반환 필요)
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const url = e.target.result;
+        if (file.type.startsWith("image/")) {
+          insertHtmlAtCursor(`<img src="${url}" style="max-width:300px; display:block; margin:8px 0;"/>`);
+        } else if (file.type.startsWith("video/")) {
+          insertHtmlAtCursor(`<video src="${url}" controls style="max-width:300px; display:block; margin:8px 0;"></video>`);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // 드래그 & 드롭 이벤트
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (!isAdmin) return;
+    const files = e.dataTransfer.files;
+    handleFiles(files);
+  };
+
+  const handlePaste = (e) => {
+    if (!isAdmin) return;
+    const items = e.clipboardData.items;
+    const files = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].kind === "file") {
+        files.push(items[i].getAsFile());
+      }
+    }
+    if (files.length > 0) {
+      e.preventDefault();
+      handleFiles(files);
+    }
+  };
+
+  return (
+    <div
+      ref={editorRef}
+      contentEditable={isAdmin}
+      suppressContentEditableWarning
+      onInput={(e) => setContent(e.currentTarget.innerHTML)}
+      onDrop={handleDrop}
+      onDragOver={(e) => e.preventDefault()}
+      onPaste={handlePaste}
+      style={{
+        width: "100%",
+        minHeight: 150,
+        border: "1px solid #ddd",
+        padding: 8,
+        borderRadius: 6,
+        overflowY: "auto",
+      }}
+      dangerouslySetInnerHTML={{ __html: content }}
+    />
+  );
+}
+
+
 // =====================================================
 // 🔵 상세 페이지
 // =====================================================
@@ -294,12 +387,7 @@ const updatePost = async () => {
          {isAdmin && (
           <div
             style={{
-              border: "1px solid #ddd",
-              padding: 12,
-              borderRadius: 8,
-              marginBottom: 16,
-            }}
-          >
+              border: "1px solid #ddd", padding: 12, borderRadius: 8, marginBottom: 16, }}>
             <h3>새 글 작성 {isWelcome && "(어서오세요 전용 공지)"}</h3>
 
             {/* 제목 */}
@@ -309,15 +397,12 @@ const updatePost = async () => {
               onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
               style={{ width: "100%", padding: 8, marginBottom: 8 }}
             />
-
             {/* 내용 */}
-            <textarea
-              placeholder="내용"
-              value={newPost.content}
-              onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-              style={{ width: "100%", minHeight: 120, padding: 8 }}
-            />
-
+           <RichTextEditor
+            content={newPost.content}
+            setContent={(html) => setNewPost({ ...newPost, content: html })}
+            isAdmin={isAdmin}
+          />
             {/* 파일 업로드 버튼 */}
             <input
               type="file"
