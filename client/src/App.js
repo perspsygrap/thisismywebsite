@@ -117,15 +117,28 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
     setCurrentPostComments(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
 
-  // 최초 진입 시 최신 글 자동 선택 (어서오세요 제외)
   useEffect(() => {
-    if (isWelcome) return;
-    if (!currentPost && filteredPosts.length > 0) {
+    if (filteredPosts.length === 0) {
+      setCurrentPost(null);
+      return;
+    }
+
+    if (isWelcome) {
+      // 어서오세요: 항상 첫 글 고정
+      const onlyPost = filteredPosts[0];
+      setCurrentPost(onlyPost);
+      fetchCommentsForPost(onlyPost.id);
+      return;
+    }
+
+    // 다른 카테고리: 아직 선택 안 했을 때만 최신글 자동 선택
+    if (!currentPost) {
       const latest = filteredPosts[0];
       setCurrentPost(latest);
       fetchCommentsForPost(latest.id);
     }
-  }, [filteredPosts, currentPost, isWelcome]);
+  }, [filteredPosts, isWelcome]);
+
 
    // ❗ 카테고리 검증 (핵심 수정 포인트)
   if (!categoryInfo) {
