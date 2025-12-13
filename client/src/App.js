@@ -105,6 +105,8 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editCommentContent, setEditCommentContent] = useState("");
+  // 글 첨부 파일 상태
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -170,15 +172,37 @@ const visitorId = getVisitorId();
     if (!isAdmin) return alert("관리자만 작성 가능");
     if (!newPost.title || !newPost.content) return alert("제목/내용 입력");
 
+    // 1️⃣ 선택된 파일을 본문 HTML로 변환
+    let fileContent = "";
+    selectedFiles.forEach((f) => {
+      if (f.type.startsWith("image/") || f.type === "image/gif") {
+        fileContent += `<img src="${f.preview}" style="max-width:200px; display:block; margin-top:8px;" />`;
+      } else if (f.type === "video/mp4") {
+        fileContent += `<video src="${f.preview}" controls style="max-width:300px; display:block; margin-top:8px;"></video>`;
+      }
+    });
+
+    // 2️⃣ 본문 내용과 합쳐서 DB에 저장
     await addDoc(collection(db, "posts"), {
       ...newPost,
+      content: newPost.content + fileContent,
       category,
       createdAt: new Date(),
     });
 
     setNewPost({ title: "", content: "" });
+    setSelectedFiles([]); // 업로드 목록 초기화
     fetchPosts();
   };
+
+  const handleFileChange = (e) => {
+  const files = Array.from(e.target.files).map((f) => ({
+    file: f,
+    preview: URL.createObjectURL(f),
+    type: f.type,
+  }));
+  setSelectedFiles(files);
+};
 
   const createComment = async (postId) => {
     if (!newComment) return;
@@ -229,7 +253,7 @@ const visitorId = getVisitorId();
   };
 
 
-  
+
 const updatePost = async () => {
   if (!editTitle || !editContent) {
     alert("제목과 내용을 입력하세요");
@@ -265,26 +289,78 @@ const updatePost = async () => {
       <div style={{ display: "flex", gap: 20 }}>
         {/* 왼쪽 */}
         <div style={{ flex: 5 }}>
-          {isAdmin && (
-            <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, marginBottom: 16 }}>
-              <h3>새 글 작성 {isWelcome && "(어서오세요 전용 공지)"}</h3>
-              <input
-                placeholder="제목"
-                value={newPost.title}
-                onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-                style={{ width: "100%", padding: 8, marginBottom: 8 }}
-              />
-              <textarea
-                placeholder="내용"
-                value={newPost.content}
-                onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                style={{ width: "100%", minHeight: 120, padding: 8 }}
-              />
-              <button onClick={createPost} style={{ marginTop: 8 }}>
-                글 등록
-              </button>
+         
+
+         {isAdmin && (
+          <div
+            style={{
+              border: "1px solid #ddd",
+              padding: 12,
+              borderRadius: 8,
+              marginBottom: 16,
+            }}
+          >
+            <h3>새 글 작성 {isWelcome && "(어서오세요 전용 공지)"}</h3>
+
+            {/* 제목 */}
+            <input
+              placeholder="제목"
+              value={newPost.title}
+              onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+              style={{ width: "100%", padding: 8, marginBottom: 8 }}
+            />
+
+            {/* 내용 */}
+            <textarea
+              placeholder="내용"
+              value={newPost.content}
+              onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+              style={{ width: "100%", minHeight: 120, padding: 8 }}
+            />
+
+            {/* 파일 업로드 버튼 */}
+            <input
+              type="file"
+              accept="image/*,video/mp4,.gif"
+              multiple
+              onChange={handleFileChange}
+              style={{ marginTop: 8 }}
+            />
+
+            {/* 선택된 파일 미리보기 */}
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                marginTop: 8,
+                gap: 8,
+              }}
+            >
+              {selectedFiles.map((f, idx) =>
+                f.type.startsWith("image/") || f.type === "image/gif" ? (
+                  <img
+                    key={idx}
+                    src={f.preview}
+                    style={{ maxWidth: 100, maxHeight: 100 }}
+                  />
+                ) : (
+                  <video
+                    key={idx}
+                    src={f.preview}
+                    controls
+                    style={{ maxWidth: 150, maxHeight: 120 }}
+                  />
+                )
+              )}
             </div>
-          )}
+
+            {/* 글 등록 버튼 */}
+            <button onClick={createPost} style={{ marginTop: 8 }}>
+              글 등록
+            </button>
+          </div>
+        )}
+
 
           {currentPost ? (
             <>
