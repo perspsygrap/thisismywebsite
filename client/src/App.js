@@ -330,10 +330,10 @@ const updatePost = async () => {
                <div key={c.id} style={{ marginBottom: 8 }}>
                 {editingCommentId === c.id ? (
                   <>
-                    <input
+                    <textarea
                       value={editCommentContent}
                       onChange={(e) => setEditCommentContent(e.target.value)}
-                      style={{ width: "80%", padding: 6 }}
+                      style={{ width: "80%", padding: 6, minHeight: }}
                     />
                     <button
                       onClick={() => updateComment(c.id)}
@@ -350,8 +350,9 @@ const updatePost = async () => {
                   </>
                 ) : (
                   <>
-                    <span>- {c.content}</span>
-
+                     <span
+                      dangerouslySetInnerHTML={renderContent(c.content)}
+                    />
                     {c.visitorId === visitorId && (
                       <button
                         onClick={() => {
