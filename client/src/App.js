@@ -327,47 +327,49 @@ const updatePost = async () => {
               <hr />
               <h4>댓글</h4>
               {currentPostComments.map((c) => (
-               <div key={c.id} style={{ marginBottom: 8 }}>
-                {editingCommentId === c.id ? (
-                  <>
-                    <textarea
-                      value={editCommentContent}
-                      onChange={(e) => setEditCommentContent(e.target.value)}
-                      style={{ width: "80%", padding: 6, minHeight: }}
-                    />
-                    <button
-                      onClick={() => updateComment(c.id)}
-                      style={{ marginLeft: 6 }}
-                    >
-                      저장
-                    </button>
-                    <button
-                      onClick={() => setEditingCommentId(null)}
-                      style={{ marginLeft: 4 }}
-                    >
-                      취소
-                    </button>
-                  </>
-                ) : (
-                  <>
-                     <span
-                      dangerouslySetInnerHTML={renderContent(c.content)}
-                    />
-                    {c.visitorId === visitorId && (
+                <div key={c.id} style={{ marginBottom: 8 }}>
+                  {editingCommentId === c.id ? (
+                    <>
+                      <textarea
+                        value={editCommentContent}
+                        onChange={(e) => setEditCommentContent(e.target.value)}
+                        style={{ width: "80%", padding: 6, minHeight: 36 }}
+                      />
                       <button
-                        onClick={() => {
-                          setEditingCommentId(c.id);
-                          setEditCommentContent(c.content);
-                        }}
-                        style={{ marginLeft: 6, fontSize: 12 }}
+                        onClick={() => updateComment(c.id)}
+                        style={{ marginLeft: 6 }}
                       >
-                        수정
+                        저장
                       </button>
-                    )}
-                  </>
-                )}
-              </div>
-            ))}
+                      <button
+                        onClick={() => setEditingCommentId(null)}
+                        style={{ marginLeft: 4 }}
+                      >
+                        취소
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span
+                        dangerouslySetInnerHTML={renderContent(c.content)}
+                      />
+                      {c.visitorId === visitorId && (
+                        <button
+                          onClick={() => {
+                            setEditingCommentId(c.id);
+                            setEditCommentContent(c.content);
+                          }}
+                          style={{ marginLeft: 6, fontSize: 12 }}
+                        >
+                          수정
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+
+
               <div style={{ marginTop: 10 }}>
                 <textarea
                   value={newComment}
