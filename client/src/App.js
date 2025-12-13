@@ -182,7 +182,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
         <div style={{ flex: 5 }}>
           {isAdmin && !isWelcome && (
             <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, marginBottom: 16 }}>
-              <h3>새 글 작성 ({categoryInfo.label})</h3>
+              <h3>새 글 작성 {isWelcome && "(어서오세요 전용 공지)"}</h3>
               <input
                 placeholder="제목"
                 value={newPost.title}
