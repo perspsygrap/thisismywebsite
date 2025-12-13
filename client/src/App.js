@@ -202,6 +202,25 @@ const visitorId = getVisitorId();
     fetchPosts();
   };
 
+    const updateComment = async (commentId) => {
+      if (!editCommentContent) {
+        alert("댓글 내용을 입력하세요");
+        return;
+      }
+
+      await updateDoc(
+        doc(db, "posts", currentPost.id, "comments", commentId),
+        {
+          content: editCommentContent,
+          updatedAt: new Date(),
+        }
+      );
+
+      setEditingCommentId(null);
+      setEditCommentContent("");
+      fetchCommentsForPost(currentPost.id);
+    };
+
 const updatePost = async () => {
   if (!editTitle || !editContent) {
     alert("제목과 내용을 입력하세요");
