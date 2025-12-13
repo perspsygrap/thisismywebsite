@@ -103,11 +103,6 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [newPost, setNewPost] = useState({ title: "", content: "" });
   const [newComment, setNewComment] = useState("");
 
-  // ❗ 카테고리 검증 (핵심 수정 포인트)
-  if (!categoryInfo) {
-    return <p style={{ padding: 40 }}>존재하지 않는 카테고리입니다</p>;
-  }
-
   const renderContent = (content) => ({
     __html: linkifyHtml(content || "", { target: "_blank" }),
   });
@@ -131,6 +126,11 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
       fetchCommentsForPost(latest.id);
     }
   }, [filteredPosts, currentPost, isWelcome]);
+
+   // ❗ 카테고리 검증 (핵심 수정 포인트)
+  if (!categoryInfo) {
+    return <p style={{ padding: 40 }}>존재하지 않는 카테고리입니다</p>;
+  }
 
   const createPost = async () => {
     if (!isAdmin) return alert("관리자만 작성 가능");
