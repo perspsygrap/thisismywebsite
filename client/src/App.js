@@ -93,6 +93,7 @@ function MainPage() {
 // =====================================================
 function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const { key } = useParams();
+  const isWelcome = key === "welcome";
   const navigate = useNavigate();
 
   const [currentPost, setCurrentPost] = useState(null);
@@ -230,6 +231,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
         </div>
 
         {/* 오른쪽 목록 */}
+        {isWelcome && (
         <div style={{ flex: 1, borderLeft: "1px solid #ddd", paddingLeft: 16 }}>
           <h3>글 목록</h3>
           {filteredPosts.map((p) => (
@@ -265,7 +267,8 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
               )}
             </div>
           ))}
-        </div>
+        </div> 
+        )}
       </div>
     </div>
   );
