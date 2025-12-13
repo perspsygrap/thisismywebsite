@@ -92,8 +92,8 @@ function MainPage() {
 // 🔵 상세 페이지 (기존 상세 화면 전체)
 // =====================================================
 function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
-  const { category: categoryKey } = useParams();
-  const isWelcome = category?.key === "welcome";
+  const { category } = useParams();
+  const isWelcome = category === "welcome";
   const navigate = useNavigate();
 
   const [currentPost, setCurrentPost] = useState(null);
@@ -101,7 +101,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [newPost, setNewPost] = useState({ title: "", content: "" });
   const [newComment, setNewComment] = useState("");
 
- const category = CATEGORIES.find((c) => c.key === categoryKey);
+  const categoryInfo = CATEGORIES.find((c) => c.key === category);
 
   const renderContent = (content) => {
     const html = linkifyHtml(content || "", { target: "_blank" });
@@ -109,7 +109,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   };
 
   const filteredPosts = posts
-    .filter((p) => p.category === key)
+    .filter((p) => p.category === category )
     .map((p) => ({ ...p, _short: makePreview(p.content) }));
 
   const fetchCommentsForPost = async (postId) => {
@@ -124,7 +124,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
 
     await addDoc(collection(db, "posts"), {
       ...newPost,
-      category: key,
+      category: category,
       createdAt: new Date(),
     });
 
