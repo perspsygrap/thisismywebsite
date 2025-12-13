@@ -221,6 +221,15 @@ const visitorId = getVisitorId();
       fetchCommentsForPost(currentPost.id);
     };
 
+      const deleteComment = async (commentId) => {
+    if (!window.confirm("댓글을 삭제할까요?")) return;
+
+    await deleteDoc(doc(db, "posts", currentPost.id, "comments", commentId));
+    fetchCommentsForPost(currentPost.id);
+  };
+
+
+  
 const updatePost = async () => {
   if (!editTitle || !editContent) {
     alert("제목과 내용을 입력하세요");
@@ -376,8 +385,6 @@ const updatePost = async () => {
                 )}
               </div>
             ))}
-
-
               <div style={{ marginTop: 10 }}>
                 <textarea
                   value={newComment}
