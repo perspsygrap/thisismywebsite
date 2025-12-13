@@ -38,7 +38,7 @@ const makePreview = (content) => {
     .replace(/<[^>]+>/g, "")
     .replace(/\n+/g, " ")
     .trim();
-  return plain.length > 40 ? plain.substring(0, 40) + " ..." : plain;
+  return plain.length > 30 ? plain.substring(0, 30) + " ..." : plain;
 };
 
 // =====================================================
@@ -131,6 +131,19 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
     fetchPosts();
   };
 
+      useEffect(() => {
+    // 아직 아무 글도 선택 안 했고
+    if (currentPost) return;
+
+    // 이 카테고리에 글이 하나라도 있으면
+    if (filteredPosts.length > 0) {
+      const latest = filteredPosts[0]; // 이미 최신순 정렬 상태
+      setCurrentPost(latest);
+      fetchCommentsForPost(latest.id);
+    }
+  }, [filteredPosts, currentPost]);
+
+  
   const createComment = async (postId) => {
     if (!newComment) return;
 
@@ -168,7 +181,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
 
       <div style={{ display: "flex", gap: 20 }}>
         {/* 왼쪽 */}
-        <div style={{ flex: 4 }}>
+        <div style={{ flex: 5 }}>
           {isAdmin && (
             <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, marginBottom: 16 }}>
               <h3>새 글 작성 ({category.label})</h3>
