@@ -38,7 +38,7 @@ const makePreview = (content) => {
     .replace(/<[^>]+>/g, "")
     .replace(/\n+/g, " ")
     .trim();
-  return plain.length > 120 ? plain.substring(0, 120) + " ..." : plain;
+  return plain.length > 40 ? plain.substring(0, 40) + " ..." : plain;
 };
 
 // =====================================================
@@ -168,7 +168,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
 
       <div style={{ display: "flex", gap: 20 }}>
         {/* 왼쪽 */}
-        <div style={{ flex: 2 }}>
+        <div style={{ flex: 4 }}>
           {isAdmin && (
             <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, marginBottom: 16 }}>
               <h3>새 글 작성 ({category.label})</h3>
