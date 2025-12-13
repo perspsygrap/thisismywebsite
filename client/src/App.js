@@ -103,6 +103,8 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [currentPostComments, setCurrentPostComments] = useState([]);
   const [newPost, setNewPost] = useState({ title: "", content: "" });
   const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentContent, setEditCommentContent] = useState("");
 
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -110,6 +112,15 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [editContent, setEditContent] = useState("");
   const [editTitle, setEditTitle] = useState("");
 
+  const getVisitorId = () => {
+  let id = localStorage.getItem("visitorId");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("visitorId", id);
+  }
+  return id;
+};
+const visitorId = getVisitorId();
 
   const renderContent = (content) => ({
     __html: linkifyHtml(content || "", { target: "_blank" }),
@@ -175,6 +186,7 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
     await addDoc(collection(db, "posts", postId, "comments"), {
       content: newComment,
       createdAt: new Date(),
+      visitorId,
     });
 
     setNewComment("");
@@ -298,8 +310,46 @@ const updatePost = async () => {
               <hr />
               <h4>댓글</h4>
               {currentPostComments.map((c) => (
-                <p key={c.id}>- {c.content}</p>
-              ))}
+               <div key={c.id} style={{ marginBottom: 8 }}>
+                {editingCommentId === c.id ? (
+                  <>
+                    <input
+                      value={editCommentContent}
+                      onChange={(e) => setEditCommentContent(e.target.value)}
+                      style={{ width: "80%", padding: 6 }}
+                    />
+                    <button
+                      onClick={() => updateComment(c.id)}
+                      style={{ marginLeft: 6 }}
+                    >
+                      저장
+                    </button>
+                    <button
+                      onClick={() => setEditingCommentId(null)}
+                      style={{ marginLeft: 4 }}
+                    >
+                      취소
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span>- {c.content}</span>
+
+                    {c.visitorId === visitorId && (
+                      <button
+                        onClick={() => {
+                          setEditingCommentId(c.id);
+                          setEditCommentContent(c.content);
+                        }}
+                        style={{ marginLeft: 6, fontSize: 12 }}
+                      >
+                        수정
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
               <div style={{ marginTop: 10 }}>
                 <input
                   value={newComment}
