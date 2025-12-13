@@ -122,9 +122,9 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
 };
 const visitorId = getVisitorId();
 
-  const renderContent = (content) => ({
-    __html: linkifyHtml((content || "").replace(/\n/g, "<br>"), { target: "_blank" }),
-  });
+ const renderContent = (content) => ({
+  __html: linkifyHtml(content || "", { target: "_blank" }).replace(/\n/g, "<br/>"),
+});
 
   const filteredPosts = posts
     .filter((p) => p.category === category)
