@@ -374,7 +374,7 @@ const updatePost = async () => {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="댓글…"
-                  style={{ width: "80%", padding: 6 }}
+                  style={{ width: "80%", padding: 6, height: 36 }}
                 />
                 <button onClick={() => createComment(currentPost.id)} style={{ marginLeft: 6 }}>
                   등록
