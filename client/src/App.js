@@ -1,6 +1,13 @@
 // client/src/App.js
 import React, { useState, useEffect } from "react";
 import linkifyHtml from "linkify-html";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { auth, db } from "./firebase";
 import {
   collection,
@@ -14,7 +21,7 @@ import {
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 // ------------------------------
-// 카테고리 목록
+// 카테고리 목록 (기존 유지)
 // ------------------------------
 const CATEGORIES = [
   { key: "match!!", label: "match!!" },
@@ -24,15 +31,18 @@ const CATEGORIES = [
 ];
 
 // ------------------------------
-// 목록 미리보기 함수
+// 목록 미리보기 함수 (기존 유지)
 // ------------------------------
 const makePreview = (content) => {
-  const plain = (content || "").replace(/<[^>]+>/g, "").replace(/\n+/g, " ").trim();
+  const plain = (content || "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n+/g, " ")
+    .trim();
   return plain.length > 120 ? plain.substring(0, 120) + " ..." : plain;
 };
 
 // =====================================================
-// 🔵 공통 헤더 컴포넌트
+// 🔵 공통 헤더 (기존 유지)
 // =====================================================
 function Header({ isAdmin, loginAdmin, logoutAdmin }) {
   return (
@@ -56,71 +66,55 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
 }
 
 // =====================================================
-// 🔵 메인 App
+// 🔵 메인 페이지 (기존 isMain === true 부분)
 // =====================================================
-function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
+function MainPage() {
+  const navigate = useNavigate();
 
-  // 메인 화면(true) / 상세 화면(false)
-  const [isMain, setIsMain] = useState(true);
+  return (
+    <div style={{ padding: "60px 20px 20px" }}>
+      <div className="top-tabs">
+        {CATEGORIES.map((c) => (
+          <button
+            key={c.key}
+            className="tab-btn"
+            onClick={() => navigate(`/category/${c.key}`)}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-  const [selectedCategory, setSelectedCategory] = useState("match!!");
+// =====================================================
+// 🔵 상세 페이지 (기존 상세 화면 전체)
+// =====================================================
+function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
+  const { key } = useParams();
+  const navigate = useNavigate();
 
-  const [posts, setPosts] = useState([]);
   const [currentPost, setCurrentPost] = useState(null);
   const [currentPostComments, setCurrentPostComments] = useState([]);
-  const [newPost, setNewPost] = useState({ title: "", content: "", category: "match!!" });
+  const [newPost, setNewPost] = useState({ title: "", content: "" });
   const [newComment, setNewComment] = useState("");
 
-  // ------------------------------
-  // 관리자 로그인
-  // ------------------------------
-  const loginAdmin = async () => {
-    const pw = prompt("관리자 비밀번호를 입력하세요");
-    if (!pw) return;
+  const category = CATEGORIES.find((c) => c.key === key);
 
-    try {
-      await signInWithEmailAndPassword(auth, "towercrane@complex.com", pw);
-      setIsAdmin(true);
-      alert("관리자 모드 ON");
-    } catch (e) {
-      alert("로그인 실패");
-    }
+  const renderContent = (content) => {
+    const html = linkifyHtml(content || "", { target: "_blank" });
+    return { __html: html };
   };
 
-  const logoutAdmin = async () => {
-    try {
-      await signOut(auth);
-      setIsAdmin(false);
-      alert("관리자 모드 OFF");
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  // ------------------------------
-  // Firestore
-  // ------------------------------
-  const fetchPosts = async () => {
-    try {
-      const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setPosts(data);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  const filteredPosts = posts
+    .filter((p) => p.category === key)
+    .map((p) => ({ ...p, _short: makePreview(p.content) }));
 
   const fetchCommentsForPost = async (postId) => {
-    try {
-      const commentsRef = collection(db, "posts", postId, "comments");
-      const snap = await getDocs(query(commentsRef, orderBy("createdAt", "asc")));
-      const comments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setCurrentPostComments(comments);
-    } catch (e) {
-      console.error(e);
-    }
+    const commentsRef = collection(db, "posts", postId, "comments");
+    const snap = await getDocs(query(commentsRef, orderBy("createdAt", "asc")));
+    setCurrentPostComments(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
 
   const createPost = async () => {
@@ -129,18 +123,18 @@ function App() {
 
     await addDoc(collection(db, "posts"), {
       ...newPost,
+      category: key,
       createdAt: new Date(),
     });
 
-    setNewPost({ title: "", content: "", category: selectedCategory });
+    setNewPost({ title: "", content: "" });
     fetchPosts();
   };
 
   const createComment = async (postId) => {
     if (!newComment) return;
 
-    const commentsRef = collection(db, "posts", postId, "comments");
-    await addDoc(commentsRef, {
+    await addDoc(collection(db, "posts", postId, "comments"), {
       content: newComment,
       createdAt: new Date(),
     });
@@ -158,79 +152,17 @@ function App() {
     fetchPosts();
   };
 
-  const handleSelectPost = async (post) => {
-    setCurrentPost(post);
-    await fetchCommentsForPost(post.id);
-  };
-
-  // 카테고리 선택 → 상세 페이지로 이동
-  const handleCategoryClick = (key) => {
-    setSelectedCategory(key);
-    setIsMain(false);
-    setCurrentPost(null);
-    setCurrentPostComments([]);
-  };
-
-  const goBackToMain = () => {
-    setIsMain(true);
-    setCurrentPost(null);
-    setCurrentPostComments([]);
-  };
-
-  // 로그인 유지
-  useEffect(() => {
-    const unsub = auth.onAuthStateChanged((user) => {
-      setIsAdmin(!!user);
-    });
-    return () => unsub();
-  }, []);
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  const renderContent = (content) => {
-    const html = linkifyHtml(content || "", { target: "_blank" });
-    return { __html: html };
-  };
-
-  const filteredPosts = posts
-    .filter((p) => p.category === selectedCategory)
-    .map((p) => ({ ...p, _short: makePreview(p.content) }));
-
-  // =====================================================
-  // 1페이지: 메인
-  // =====================================================
-  if (isMain) {
-    return (
-      <div style={{ padding: "60px 20px 20px" }}>
-        <Header isAdmin={isAdmin} loginAdmin={loginAdmin} logoutAdmin={logoutAdmin} />
-
-        <div className="top-tabs">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.key}
-              className={selectedCategory === c.key ? "tab-btn active" : "tab-btn"}
-              onClick={() => handleCategoryClick(c.key)}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
+  if (!category) {
+    return <p style={{ padding: 40 }}>존재하지 않는 카테고리</p>;
   }
 
-  // =====================================================
-  // 2페이지: 상세 화면
-  // =====================================================
   return (
     <div style={{ padding: "60px 20px 20px" }}>
       <Header isAdmin={isAdmin} loginAdmin={loginAdmin} logoutAdmin={logoutAdmin} />
 
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-        <button onClick={goBackToMain}>← 목록으로</button>
-        <strong>{CATEGORIES.find((c) => c.key === selectedCategory)?.label}</strong>
+        <button onClick={() => navigate("/")}>← 목록으로</button>
+        <strong>{category.label}</strong>
         <div style={{ width: 80 }} />
       </div>
 
@@ -239,21 +171,17 @@ function App() {
         <div style={{ flex: 2 }}>
           {isAdmin && (
             <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, marginBottom: 16 }}>
-              <h3>새 글 작성 ({selectedCategory})</h3>
+              <h3>새 글 작성 ({category.label})</h3>
               <input
                 placeholder="제목"
                 value={newPost.title}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, title: e.target.value, category: selectedCategory })
-                }
+                onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
                 style={{ width: "100%", padding: 8, marginBottom: 8 }}
               />
               <textarea
                 placeholder="내용"
                 value={newPost.content}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, content: e.target.value, category: selectedCategory })
-                }
+                onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
                 style={{ width: "100%", minHeight: 120, padding: 8 }}
               />
               <button onClick={createPost} style={{ marginTop: 8 }}>
@@ -301,7 +229,10 @@ function App() {
                 marginBottom: 10,
                 cursor: "pointer",
               }}
-              onClick={() => handleSelectPost(p)}
+              onClick={() => {
+                setCurrentPost(p);
+                fetchCommentsForPost(p.id);
+              }}
             >
               <strong>{p.title}</strong>
               <div
@@ -327,5 +258,67 @@ function App() {
   );
 }
 
-export default App;
+// =====================================================
+// 🔵 App (상태/Firestore/관리자 유지)
+// =====================================================
+function App() {
+  const [posts, setPosts] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
+  const fetchPosts = async () => {
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    setPosts(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+  };
+
+  const loginAdmin = async () => {
+    const pw = prompt("관리자 비밀번호를 입력하세요");
+    if (!pw) return;
+    try {
+      await signInWithEmailAndPassword(auth, "towercrane@complex.com", pw);
+      alert("관리자 모드 ON");
+    } catch {
+      alert("로그인 실패");
+    }
+  };
+
+  const logoutAdmin = async () => {
+    await signOut(auth);
+    alert("관리자 모드 OFF");
+  };
+
+  useEffect(() => {
+    fetchPosts();
+    const unsub = auth.onAuthStateChanged((u) => setIsAdmin(!!u));
+    return () => unsub();
+  }, []);
+
+  return (
+    <Routes>
+      <Route path="/" element={<MainPage />} />
+      <Route
+        path="/category/:key"
+        element={
+          <DetailPage
+            posts={posts}
+            isAdmin={isAdmin}
+            loginAdmin={loginAdmin}
+            logoutAdmin={logoutAdmin}
+            fetchPosts={fetchPosts}
+          />
+        }
+      />
+    </Routes>
+  );
+}
+
+// =====================================================
+// 🔵 Router Wrapper
+// =====================================================
+export default function AppWrapper() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
