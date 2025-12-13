@@ -341,7 +341,7 @@ const updatePost = async () => {
                   <img
                     key={idx}
                     src={f.preview}
-                    style={{ maxWidth: 100, maxHeight: 100 }}
+                    style={{ maxWidth: 600, maxHeight: 600, objectFit: "contain" }}
                   />
                 ) : (
                   <video
