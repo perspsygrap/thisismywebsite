@@ -92,6 +92,14 @@ function MainPage() {
     // 🔹 본문 작성란 컴포넌트
       function RichTextEditor({ content, setContent, editable }) {
       const editorRef = React.useRef(null);
+      const isComposingRef = React.useRef(false);
+
+      // 🔹 최초 마운트 시에만 content 주입
+      useEffect(() => {
+        if (editorRef.current && editorRef.current.innerHTML !== content) {
+          editorRef.current.innerHTML = content || "";
+        }
+      }, []); // ❗ dependency 비움
 
       const insertHtmlAtCursor = (html) => {
         if (!editorRef.current) return;
@@ -138,26 +146,33 @@ function MainPage() {
       };
 
       return (
-        <div
-          ref={editorRef}
-          contentEditable={editable}
-          suppressContentEditableWarning
-          onInput={(e) => setContent(e.currentTarget.innerHTML)}
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          onPaste={handlePaste}
-          style={{
-            width: "100%",
-            minHeight: 150,
-            border: "1px solid #ddd",
-            padding: 8,
-            borderRadius: 6,
-            overflowY: "auto",
-          }}
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
-      );
-    }
+    <div
+      ref={editorRef}
+      contentEditable={editable}
+      suppressContentEditableWarning
+      onCompositionStart={() => {
+        isComposingRef.current = true;
+      }}
+      onCompositionEnd={(e) => {
+        isComposingRef.current = false;
+        setContent(e.currentTarget.innerHTML);
+      }}
+      onInput={(e) => {
+        if (!isComposingRef.current) {
+          setContent(e.currentTarget.innerHTML);
+        }
+      }}
+      style={{
+        width: "100%",
+        minHeight: 150,
+        border: "1px solid #ddd",
+        padding: 8,
+        borderRadius: 6,
+        overflowY: "auto",
+      }}
+    />
+  );
+}
 
 
 // =====================================================
