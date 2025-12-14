@@ -47,16 +47,20 @@ const makePreview = (content) => {
 // =====================================================
 function Header({ isAdmin, loginAdmin, logoutAdmin }) {
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        right: 0,
-        padding: "7px 16px",
-        background: "white",
-        zIndex: 999,
-      }}
-    >
+<div
+  style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",      // 화면 전체 가로
+    height: 60,          // 헤더 높이 고정 (px)
+    background: "white",
+    zIndex: 999,
+    display: "flex",
+    alignItems: "center",
+    padding: "0 16px"
+  }}
+>
       {!isAdmin ? (
         <button onClick={loginAdmin}>관리자 로그인</button>
       ) : (
