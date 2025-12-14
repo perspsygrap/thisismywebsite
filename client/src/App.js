@@ -433,7 +433,7 @@ const updatePost = async () => {
 };
 
   return (
-    <div style={{ padding: "60px 20px 20px" }}>
+    <div style={{ padding: "100px 20px 20px" }}>
       <Header isAdmin={isAdmin} loginAdmin={loginAdmin} logoutAdmin={logoutAdmin} />
 
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
