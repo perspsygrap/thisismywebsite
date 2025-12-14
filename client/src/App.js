@@ -39,9 +39,9 @@ const formatDateTime = (ts) => {
 // ------------------------------
 const CATEGORIES = [
   { key: "match!!", label: "match!!" },
-  { key: "study", label: "공부" },
+  { key: "study", label: "text" },
   { key: "tcc", label: "TCC" },
-  { key: "welcome", label: "어서오세요" },
+  { key: "welcome", label: "comment" },
 ];
 
 // ------------------------------
@@ -132,11 +132,27 @@ function MainPage() {
 
   return (
     <div style={{ padding: "60px 20px 20px" }}>
-      <div className="top-tabs">
+     {/* 상단 버튼 4개, 화면 전체 폭 기준 4등분 */}
+      <div
+        className="top-tabs"
+        style={{
+          display: "flex",
+          justifyContent: "space-between", // 버튼 사이 간격 균등
+          gap: "20px",                     // 버튼 사이 최소 간격
+        }}
+      >
         {CATEGORIES.map((c) => (
           <button
             key={c.key}
-            className="tab-btn"
+            style={{
+              flex: 1,                      // 버튼 너비 균등 분배
+              padding: "12px 0",            // 버튼 세로 높이 확보
+              fontSize: 16,
+              borderRadius: 6,
+              cursor: "pointer",
+              backgroundColor: "#f0f0f0",
+              border: "1px solid #ccc",
+            }}
             onClick={() => navigate(`/category/${c.key}`)}
           >
             {c.label}
