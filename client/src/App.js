@@ -103,7 +103,9 @@ function MainPage() {
 
       const insertHtmlAtCursor = (html) => {
         if (!editorRef.current) return;
+
         editorRef.current.focus();
+
         document.execCommand("insertHTML", false, html);
       };
 
@@ -158,8 +160,8 @@ function MainPage() {
         setContent(e.currentTarget.innerHTML);
       }}
       onInput={(e) => {
-        if (!isComposingRef.current) {
-          setContent(e.currentTarget.innerHTML);
+       if (!isComposingRef.current) {
+       setContent(e.currentTarget.innerHTML);
         }
       }}
       style={{
