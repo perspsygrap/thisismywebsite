@@ -152,7 +152,7 @@ function MainPage() {
               transform: "translateX(-50%)",  // 버튼 중앙 기준으로 정렬
               top: topOffset,                 // 세로 위치 조정
               height: `${buttonHeights[index]}px`,
-              width: "100px",                 // 너비 고정 가능
+              width: "150px",                 // 너비 고정 가능
               fontSize: 16,
               borderRadius: 6,
               cursor: "pointer",
