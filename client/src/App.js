@@ -53,19 +53,41 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
     top: 0,
     left: 0,
     width: "100%",      // 화면 전체 가로
-    height: 50,          // 헤더 높이 고정 (px)
-    background: "white",
-    zIndex: 999,
+      height: 90,          // 헤더 높이 고정 (px)
+    backgroundColor: "#fff", // 헤더 배경색
     display: "flex",
     alignItems: "center",
-    padding: "0 16px"
+    padding: "0 16px",
+    zIndex: 999,
   }}
 >
-      {!isAdmin ? (
-        <button onClick={loginAdmin}>관리자 로그인</button>
-      ) : (
-        <button onClick={logoutAdmin}>관리자 로그아웃</button>
-      )}
+  {/* 로고 */}
+    <img
+      src="/2nd_Oktavia Von Seckendorff.jpg"      // public 폴더에 로고 PNG 넣기
+      alt="로고"
+      style={{
+        height: 71,        // 이미지 높이
+        objectFit: "contain",
+      }}
+    />  
+
+  {/* 관리자 버튼: 이미지 위 투명 버튼 */}
+      <button
+        onClick={!isAdmin ? loginAdmin : logoutAdmin}
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 16,
+          width: 120,             // 버튼 클릭 영역 가로
+          height: 90,             // 버튼 클릭 영역 높이 = 헤더 높이
+          backgroundColor: "transparent",
+          color: "transparent",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        {!isAdmin ? "관리자 로그인" : "관리자 로그아웃"}
+      </button>
     </div>
   );
 }
