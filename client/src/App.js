@@ -508,107 +508,55 @@ const updatePost = async () => {
         )}
 
 
-          {currentPost ? (
-            <>
-              {isAdmin && currentPost && (
-                <button
-                  onClick={() => {
-                    setIsEditing(true);
-                    setEditTitle(currentPost.title);
-                    setEditContent(currentPost.content);
-                  }}
-                  style={{ marginBottom: 12 }}
-                >
-                  수정
-                </button>
-              )}
+{currentPost ? (
+  <>
+    {/* 🔹 관리자용 수정 버튼 */}
+    {isAdmin && (
+      <button
+        onClick={() => {
+          setIsEditing(true);
+          setEditTitle(currentPost.title);
+          setEditContent(currentPost.content);
+        }}
+        style={{ marginBottom: 12 }}
+      >
+        수정
+      </button>
+    )}
 
-              {isEditing ? (
-                <>
-                  <input
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    style={{ width: "100%", padding: 8, marginBottom: 8 }}
-                  />
-                  <textarea
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    style={{ width: "100%", minHeight: 150, padding: 8 }}
-                  />
-
-                  {isEditing && (
-                    <div style={{ marginTop: 8 }}>
-                      <button onClick={updatePost}>저장</button>
-                      <button
-                        onClick={() => setIsEditing(false)}
-                        style={{ marginLeft: 8 }}
-                      >
-                        취소
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-  <h2>{currentPost.title}</h2>
-  <span style={{ fontSize: 12, color: "#888" }}>
-    {formatDateTime(currentPost.createdAt)}
-  </span>
-</div>
-<div
-  dangerouslySetInnerHTML={renderContent(currentPost.content)}
-  onClick={(e) => {
-    if (e.target.tagName === "IMG") {
-      setViewerSrc(e.target.src);
-      setViewerOpen(true);
-    }
-  }}
-/>
-
-                </>
-              )}
-
-              <hr />
-{/* <h4>댓글</h4> */}
-{currentPostComments.map((c) => (
-  <div key={c.id} style={{ marginBottom: 8, position: "relative", paddingLeft: 20, paddingBottom: 20 }}>
-    {editingCommentId === c.id ? (
+    {/* 🔹 본문 수정/보기 */}
+    {isEditing ? (
       <>
-        <textarea
-          value={editCommentContent}
-          onChange={(e) => setEditCommentContent(e.target.value)}
-          style={{
-            width: "80%",
-            padding: 6,
-            minHeight: 36,
-            height: "auto",
-            overflow: "hidden",
-            resize: "none",
-          }}
-          onInput={(e) => {
-            e.target.style.height = "36px"; // 초기화
-            e.target.style.height = e.target.scrollHeight + "px"; // 내용 높이에 맞춰 자동 조정
-          }}
+        <input
+          value={editTitle}
+          onChange={(e) => setEditTitle(e.target.value)}
+          style={{ width: "100%", padding: 8, marginBottom: 8 }}
         />
-        <button
-          onClick={() => updateComment(c.id)}
-          style={{ marginLeft: 6 }}
-        >
-          저장
-        </button>
-        <button
-          onClick={() => setEditingCommentId(null)}
-          style={{ marginLeft: 4 }}
-        >
-          취소
-        </button>
+        <RichTextEditor
+          content={editContent}
+          setContent={setEditContent}
+          editable={true}
+        />
+        <div style={{ marginTop: 8 }}>
+          <button onClick={updatePost}>저장</button>
+          <button
+            onClick={() => setIsEditing(false)}
+            style={{ marginLeft: 8 }}
+          >
+            취소
+          </button>
+        </div>
       </>
     ) : (
       <>
-        <span
-          style={{ whiteSpace: "pre-wrap" }} // 줄바꿈 유지
-          dangerouslySetInnerHTML={renderContent(c.content)}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2>{currentPost.title}</h2>
+          <span style={{ fontSize: 12, color: "#888" }}>
+            {formatDateTime(currentPost.createdAt)}
+          </span>
+        </div>
+        <div
+          dangerouslySetInnerHTML={renderContent(currentPost.content)}
           onClick={(e) => {
             if (e.target.tagName === "IMG") {
               setViewerSrc(e.target.src);
@@ -616,53 +564,84 @@ const updatePost = async () => {
             }
           }}
         />
-        {/* 댓글 작성일 표시 */}
-        <span style={{ fontSize: 10, color: "#888", position: "absolute", bottom: 0, left: 0 }}>
-          {formatDateTime(c.createdAt)}
-        </span>
-
-        {c.visitorId === visitorId && (
-          <>
-            <button
-              onClick={() => {
-                setEditingCommentId(c.id);
-                setEditCommentContent(c.content); // 순수 텍스트로 넣어 수정 시 줄바꿈 유지
-              }}
-              style={{ marginLeft: 6, fontSize: 12 }}
-            >
-              수정
-            </button>
-            <button
-              onClick={() => deleteComment(c.id)}
-              style={{ marginLeft: 4, fontSize: 12, color: "red" }}
-            >
-              삭제
-            </button>
-          </>
-        )}
       </>
     )}
-  </div>
-))}
 
-<div style={{ marginTop: 16 }}>
-  <RichTextEditor
-    content={newComment}
-    setContent={setNewComment}
-    editable={true} 
-  />
-  <div style={{ marginTop: 8, textAlign: "right" }}>
-    <button onClick={() => createComment(currentPost.id)}>
-      댓글 등록
-    </button>
-  </div>
-</div>
+    <hr />
 
+    {/* 🔹 댓글 목록 */}
+    {currentPostComments.map((c) => (
+      <div key={c.id} style={{ marginBottom: 8, position: "relative", paddingLeft: 20, paddingBottom: 20 }}>
+        {editingCommentId === c.id ? (
+          <>
+            <RichTextEditor
+              content={editCommentContent}
+              setContent={setEditCommentContent}
+              editable={true}
+            />
+            <div style={{ marginTop: 4 }}>
+              <button onClick={() => updateComment(c.id)} style={{ marginRight: 6 }}>
+                저장
+              </button>
+              <button onClick={() => setEditingCommentId(null)}>취소</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <span
+              dangerouslySetInnerHTML={renderContent(c.content)}
+              onClick={(e) => {
+                if (e.target.tagName === "IMG") {
+                  setViewerSrc(e.target.src);
+                  setViewerOpen(true);
+                }
+              }}
+            />
+            <span style={{ fontSize: 10, color: "#888", position: "absolute", bottom: 0, left: 0 }}>
+              {formatDateTime(c.createdAt)}
+            </span>
+            {c.visitorId === visitorId && (
+              <>
+                <button
+                  onClick={() => {
+                    setEditingCommentId(c.id);
+                    setEditCommentContent(c.content);
+                  }}
+                  style={{ marginLeft: 6, fontSize: 12 }}
+                >
+                  수정
+                </button>
+                <button
+                  onClick={() => deleteComment(c.id)}
+                  style={{ marginLeft: 4, fontSize: 12, color: "red" }}
+                >
+                  삭제
+                </button>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    ))}
 
-            </>
-          ) : (
-            !isWelcome && <p style={{ color: "#666" }}>오른쪽에서 글을 선택하세요.</p>
-          )}
+    {/* 🔹 새 댓글 작성 */}
+    <div style={{ marginTop: 16 }}>
+      <RichTextEditor
+        content={newComment}
+        setContent={setNewComment}
+        editable={true}
+      />
+      <div style={{ marginTop: 8, textAlign: "right" }}>
+        <button onClick={() => createComment(currentPost.id)}>
+          댓글 등록
+        </button>
+      </div>
+    </div>
+  </>
+) : (
+  !isWelcome && <p style={{ color: "#666" }}>오른쪽에서 글을 선택하세요.</p>
+)}
+
         </div>
 
         {/* 오른쪽 목록: welcome 제외 */}
