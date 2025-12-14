@@ -190,8 +190,6 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerSrc, setViewerSrc] = useState(null);
   
-console.log("viewerOpen:", viewerOpen);
-
   const getVisitorId = () => {
   let id = localStorage.getItem("visitorId");
   if (!id) {
@@ -401,7 +399,7 @@ const updatePost = async () => {
            <RichTextEditor
             content={newPost.content}
             setContent={(html) => setNewPost({ ...newPost, content: html })}
-            isAdmin={isAdmin}
+            editable={isAdmin}
           />
             {/* 파일 업로드 버튼 */}
             <input
@@ -565,7 +563,7 @@ const updatePost = async () => {
             <RichTextEditor
               content={newComment}
               setContent={setNewComment}
-              isAdmin={true} 
+              editable={true} 
             />
 
             <div style={{ marginTop: 8, textAlign: "right" }}>
