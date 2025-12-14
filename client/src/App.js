@@ -1,5 +1,6 @@
 // client/src/App.js
 import React, { useState, useEffect } from "react";
+import MainPage from "./MainPage";
 import linkifyHtml from "linkify-html";
 import {
   BrowserRouter,
@@ -39,9 +40,9 @@ const formatDateTime = (ts) => {
 // ------------------------------
 const CATEGORIES = [
   { key: "match!!", label: "match!!" },
-  { key: "study", label: "text" },
+  { key: "text", label: "text" },
   { key: "tcc", label: "TCC" },
-  { key: "welcome", label: "comment" },
+  { key: "comment", label: "comment" },
 ];
 
 // ------------------------------
@@ -124,52 +125,6 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
   );
 }
 
-// =====================================================
-// 🔵 메인 페이지
-// =====================================================
-function MainPage() {
-  const navigate = useNavigate();
-
-  // 버튼 라벨 및 개별 높이 지정
-  const buttonConfigs = [
-    { label: "match!!", height: 700, topOffset: 0 },
-    { label: "text", height: 700, topOffset: 320 },  // 버튼2 아래로
-    { label: "TCC", height: 700, topOffset: 110 },   // 버튼3 버튼2보다 위
-    { label: "comment", height: 700, topOffset: 470 },// 버튼4 원위치
-  ];
-
-  return (
-    <div style={{ padding: "60px 20px 20px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        {buttonConfigs.map((btn, index) => (
-          <button
-            key={index}
-            onClick={() => navigate(`/category/${btn.label.toLowerCase()}`)}
-            style={{
-              flex: 1,                     // 버튼 폭 균등 분배
-              height: btn.height,          // 개별 높이 적용
-              marginTop: btn.topOffset,    // 계단식 위치
-              marginLeft: index === 0 ? 0 : 10,  // 좌우 간격
-              marginRight: index === buttonConfigs.length - 1 ? 0 : 10,
-              fontSize: 16,
-              borderRadius: 6,
-              cursor: "pointer",
-              backgroundColor: "#f0f0f0",
-              border: "1px solid #ccc",
-            }}
-          >
-            {btn.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
 
     // 🔹 본문 작성란 컴포넌트
       function RichTextEditor({ content, setContent, editable }) {
