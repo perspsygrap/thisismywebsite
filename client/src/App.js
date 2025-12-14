@@ -130,35 +130,40 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
 function MainPage() {
   const navigate = useNavigate();
 
-  return (
-    <div style={{ padding: "60px 20px 20px" }}>
-     {/* 상단 버튼 4개, 화면 전체 폭 기준 4등분 */}
-      <div
-        className="top-tabs"
-        style={{
-          display: "flex",
-          justifyContent: "space-between", // 버튼 사이 간격 균등
-          gap: "20px",                     // 버튼 사이 최소 간격
-        }}
-      >
-        {CATEGORIES.map((c) => (
+  // 버튼별 높이 지정 가능
+  const buttonHeights = [252, 252, 252, 252]; // 원하는 px로 바꿀 수 있음
+
+ return (
+    <div style={{ padding: "60px 20px 20px", position: "relative" }}>
+      {CATEGORIES.map((c, index) => {
+        // 버튼별 top 오프셋: 계단식 위치
+        let topOffset = 0;
+        if (index === 1) topOffset = 40;   // 버튼2 아래로
+        if (index === 2) topOffset = 20;   // 버튼3 위로
+        if (index === 3) topOffset = 0;    // 버튼4 원위치
+
+        return (
           <button
             key={c.key}
+            onClick={() => navigate(`/category/${c.key}`)}
             style={{
-              flex: 1,                      // 버튼 너비 균등 분배
-              padding: "84px 0",            // 버튼 세로 높이 확보
+              position: "absolute",
+              left: `${index * 25}%`,         // 화면 폭 기준 배치
+              transform: "translateX(-50%)",  // 버튼 중앙 기준으로 정렬
+              top: topOffset,                 // 세로 위치 조정
+              height: `${buttonHeights[index]}px`,
+              width: "100px",                 // 너비 고정 가능
               fontSize: 16,
               borderRadius: 6,
               cursor: "pointer",
               backgroundColor: "#f0f0f0",
               border: "1px solid #ccc",
             }}
-            onClick={() => navigate(`/category/${c.key}`)}
           >
             {c.label}
           </button>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }
