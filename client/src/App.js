@@ -187,6 +187,9 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const [editContent, setEditContent] = useState("");
   const [editTitle, setEditTitle] = useState("");
 
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerSrc, setViewerSrc] = useState(null);
+
   const getVisitorId = () => {
   let id = localStorage.getItem("visitorId");
   if (!id) {
@@ -200,6 +203,14 @@ const visitorId = getVisitorId();
  const renderContent = (content) => ({
   __html: linkifyHtml(content || "", { target: "_blank" }).replace(/\n/g, "<br/>"),
 });
+
+const handleContentClick = (e) => {
+  const target = e.target;
+  if (target.tagName === "IMG") {
+    setViewerSrc(target.src);
+    setViewerOpen(true);
+  }
+};
 
   const filteredPosts = posts
     .filter((p) => p.category === category)
@@ -477,7 +488,10 @@ const updatePost = async () => {
               ) : (
                 <>
                   <h2>{currentPost.title}</h2>
-                  <div dangerouslySetInnerHTML={renderContent(currentPost.content)} />
+                  <div 
+                  onClick={handleContentClick}
+                  dangerouslySetInnerHTML={renderContent(currentPost.content)} 
+                  />
                 </>
               )}
 
@@ -508,7 +522,8 @@ const updatePost = async () => {
                   ) : (
                     <>
                       <span
-                        dangerouslySetInnerHTML={renderContent(c.content)}
+                      onClick={handleContentClick}
+                      dangerouslySetInnerHTML={renderContent(c.content)}
                       />
                       {c.visitorId === visitorId && (
                       <>
@@ -594,9 +609,53 @@ const updatePost = async () => {
           </div>
         )}
       </div>
+      {viewerOpen && (
+        <div
+          onClick={() => setViewerOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <img
+              src={viewerSrc}
+              style={{
+                maxWidth: "90vw",
+                maxHeight: "80vh",
+                display: "block",
+                marginBottom: 12,
+              }}
+            />
+            <div style={{ textAlign: "center" }}>
+              <a
+                href={viewerSrc}
+                download
+                style={{
+                  color: "white",
+                  textDecoration: "underline",
+                  marginRight: 12,
+                }}
+              >
+                이미지 다운로드
+              </a>
+              <button onClick={() => setViewerOpen(false)}>
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+
 
 // =====================================================
 // 🔵 App
