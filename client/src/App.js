@@ -167,6 +167,10 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const navigate = useNavigate();
   const { category } = useParams();
 
+console.log("viewerOpen:", viewerOpen);
+
+
+
   const categoryInfo = CATEGORIES.find((c) => c.key === category);
   const isWelcome = category === "welcome";
 
