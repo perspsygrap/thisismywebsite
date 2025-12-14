@@ -95,13 +95,13 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
 
       {/* 로고 이미지 (버튼 위에 시각적으로 표시) */}
       <img
-        src="/89Oktavia Von Seckendorff.jpg" // public에 있는 로고 JPG
+        src="/2nd_Oktavia Von Seckendorff.jpg" // public에 있는 로고 JPG
         alt="로고"
         style={{
           position: "absolute",
           top: 16,
           right: 16, // 버튼과 같은 위치
-          height: 89,
+          height: 71,
           objectFit: "contain",
           zIndex: 20,
           pointerEvents: "none", // 이미지 클릭해도 버튼이 작동
