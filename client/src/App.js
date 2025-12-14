@@ -132,10 +132,10 @@ function MainPage() {
 
   // 버튼 라벨 및 개별 높이 지정
   const buttonConfigs = [
-    { label: "match!!", height: 1000, topOffset: 0 },
-    { label: "text", height: 1000, topOffset: 420 },  // 버튼2 아래로
-    { label: "TCC", height: 1000, topOffset: 160 },   // 버튼3 버튼2보다 위
-    { label: "comment", height: 1000, topOffset: 600 },// 버튼4 원위치
+    { label: "match!!", height: 700, topOffset: 0 },
+    { label: "text", height: 700, topOffset: 320 },  // 버튼2 아래로
+    { label: "TCC", height: 700, topOffset: 110 },   // 버튼3 버튼2보다 위
+    { label: "comment", height: 700, topOffset: 470 },// 버튼4 원위치
   ];
 
   return (
