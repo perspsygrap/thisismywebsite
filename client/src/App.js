@@ -183,6 +183,8 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const categoryInfo = CATEGORIES.find((c) => c.key === category);
   const isWelcome = category === "welcome";
 
+  const [isWriting, setIsWriting] = useState(false);
+
   const [currentPost, setCurrentPost] = useState(null);
   const [currentPostComments, setCurrentPostComments] = useState([]);
   const [newPost, setNewPost] = useState({ title: "", content: "" });
@@ -253,22 +255,37 @@ const visitorId = getVisitorId();
   }
 
     const createPost = async () => {
-    if (!isAdmin) return alert("관리자만 작성 가능");
+      if (!isAdmin) return alert("관리자만 작성 가능");
 
-    // RichTextEditor에서 최신 내용 가져오기
-    const content = newPost.content;
-    if (!newPost.title || !content) return alert("제목/내용 입력");
+      const content = newPost.content;
+      if (!newPost.title || !content) return alert("제목/내용 입력");
 
-    await addDoc(collection(db, "posts"), {
-      ...newPost,
-      content,  // 최신 내용 사용
-      category,
-      createdAt: new Date(),
-    });
+      // 🔹 1. 글 생성
+      const docRef = await addDoc(collection(db, "posts"), {
+        ...newPost,
+        content,
+        category,
+        createdAt: new Date(),
+      });
 
-    setNewPost({ title: "", content: "" });
-    fetchPosts();
-  };
+      // 🔹 2. 작성 상태 초기화 (← “작성 박스 새로고침” 효과)
+      setNewPost({ title: "", content: "" });
+      setSelectedFiles([]);
+
+      // 🔹 3. 방금 쓴 글을 현재 글로 설정
+      const newPostData = {
+        id: docRef.id,
+        title: newPost.title,
+        content,
+        category,
+        createdAt: new Date(),
+      };
+      setCurrentPost(newPostData);
+      setCurrentPostComments([]);
+
+      // 🔹 4. 목록 새로 불러오기
+      fetchPosts();
+    };
 
 
   const handleFileChange = (e) => {
@@ -529,17 +546,35 @@ const updatePost = async () => {
                 )}
               </div>
             ))}
-              <div style={{ marginTop: 10 }}>
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="댓글…"
-                  style={{ width: "80%", padding: 12, minHeight: 6 }}
-                />
-                <button onClick={() => createComment(currentPost.id)} style={{ marginLeft: 6 }}>
+             
+            <div style={{ marginTop: 16 }}>
+              <textarea
+                value={newComment}
+                onChange={(e) => {
+                  setNewComment(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = e.target.scrollHeight + "px";
+                }}
+                placeholder="댓글…"
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  minHeight: 150,     // 🔹 본문과 비슷한 기본 크기
+                  resize: "none",
+                  overflow: "hidden",
+                  borderRadius: 6,
+                  border: "1px solid #ddd",
+                  boxSizing: "border-box",
+                }}
+              />
+
+              <div style={{ marginTop: 8, textAlign: "right" }}>
+                <button onClick={() => createComment(currentPost.id)}>
                   등록
                 </button>
               </div>
+            </div>
+
             </>
           ) : (
             !isWelcome && <p style={{ color: "#666" }}>오른쪽에서 글을 선택하세요.</p>
