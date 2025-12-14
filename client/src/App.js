@@ -93,6 +93,13 @@ function MainPage() {
     function RichTextEditor({ content, setContent, isAdmin }) {
     const editorRef = React.useRef(null);
 
+      // 최초 1회만 내용 주입
+    useEffect(() => {
+      if (editorRef.current && editorRef.current.innerHTML !== content) {
+        editorRef.current.innerHTML = content || "";
+      }
+    }, []);
+
     // 커서 위치에 HTML 삽입
   const insertHtmlAtCursor = (html) => {
     if (!editorRef.current) return;
@@ -147,7 +154,10 @@ function MainPage() {
         ref={editorRef}
         contentEditable={isAdmin}
         suppressContentEditableWarning
-        onInput={(e) => setContent(e.currentTarget.innerHTML)} // props로 상태 업데이트
+         onBlur={() => {
+        // ✅ 입력이 끝난 후에만 상태 반영
+        setContent(editorRef.current.innerHTML);
+       }}
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         onPaste={handlePaste}
@@ -159,7 +169,6 @@ function MainPage() {
           borderRadius: 6,
           overflowY: "auto",
         }}
-        dangerouslySetInnerHTML={{ __html: content }}
       />
     );
   }
