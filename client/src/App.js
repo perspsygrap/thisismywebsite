@@ -167,10 +167,6 @@ function DetailPage({ posts, isAdmin, loginAdmin, logoutAdmin, fetchPosts }) {
   const navigate = useNavigate();
   const { category } = useParams();
 
-console.log("viewerOpen:", viewerOpen);
-
-
-
   const categoryInfo = CATEGORIES.find((c) => c.key === category);
   const isWelcome = category === "welcome";
 
@@ -193,6 +189,8 @@ console.log("viewerOpen:", viewerOpen);
 
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerSrc, setViewerSrc] = useState(null);
+  
+console.log("viewerOpen:", viewerOpen);
 
   const getVisitorId = () => {
   let id = localStorage.getItem("visitorId");
