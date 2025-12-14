@@ -95,7 +95,7 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
 
       {/* 로고 이미지 (버튼 위에 시각적으로 표시) */}
       <img
-        src="/2nd_Oktavia Von Seckendorff.jpg" // public에 있는 로고 JPG
+        src="/2nd_Oktavia Von Seckendorff.png" // public에 있는 로고 JPG
         alt="로고"
         style={{
           position: "absolute",
