@@ -53,7 +53,7 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
     top: 0,
     left: 0,
     width: "100%",      // 화면 전체 가로
-    height: 60,          // 헤더 높이 고정 (px)
+    height: 50,          // 헤더 높이 고정 (px)
     background: "white",
     zIndex: 999,
     display: "flex",
