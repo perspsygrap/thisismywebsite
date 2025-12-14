@@ -488,10 +488,15 @@ const updatePost = async () => {
               ) : (
                 <>
                   <h2>{currentPost.title}</h2>
-                  <div 
-                  onClick={handleContentClick}
-                  dangerouslySetInnerHTML={renderContent(currentPost.content)} 
-                  />
+                  <div
+                  dangerouslySetInnerHTML={renderContent(currentPost.content)}
+                  onClick={(e) => {
+                    if (e.target.tagName === "IMG") {
+                      setViewerSrc(e.target.src);
+                      setViewerOpen(true);
+                    }
+                  }}
+                />
                 </>
               )}
 
@@ -522,9 +527,14 @@ const updatePost = async () => {
                   ) : (
                     <>
                       <span
-                      onClick={handleContentClick}
                       dangerouslySetInnerHTML={renderContent(c.content)}
-                      />
+                      onClick={(e) => {
+                        if (e.target.tagName === "IMG") {
+                          setViewerSrc(e.target.src);
+                          setViewerOpen(true);
+                        }
+                      }}
+                    />
                       {c.visitorId === visitorId && (
                       <>
                         <button
