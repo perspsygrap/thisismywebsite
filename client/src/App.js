@@ -43,51 +43,70 @@ const makePreview = (content) => {
 };
 
 // =====================================================
-// 🔵 공통 헤더 (기존 유지)
+// 🔵 헤더 (DetailPage 전용)
 // =====================================================
 function Header({ isAdmin, loginAdmin, logoutAdmin }) {
   return (
-<div
-  style={{
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",      // 화면 전체 가로
-      height: 90,          // 헤더 높이 고정 (px)
-    backgroundColor: "#fff", // 헤더 배경색
-    display: "flex",
-    alignItems: "center",
-    padding: "0 16px",
-    zIndex: 999,
-  }}
->
-  {/* 로고 */}
-    <img
-      src="/2nd_Oktavia Von Seckendorff.jpg"      // public 폴더에 로고 PNG 넣기
-      alt="로고"
+    <div
       style={{
-        height: 71,        // 이미지 높이
-        objectFit: "contain",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: 90, // 헤더 높이
+        backgroundColor: "#fff",
+        zIndex: 999,
       }}
-    />  
+    >
+      {/* 관리자 로그인/로그아웃 버튼 (투명) */}
+      {!isAdmin ? (
+        <button
+          onClick={loginAdmin}
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            zIndex: 10,
+            background: "transparent",
+            color: "transparent",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          관리자 로그인
+        </button>
+      ) : (
+        <button
+          onClick={logoutAdmin}
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            zIndex: 10,
+            background: "transparent",
+            color: "transparent",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          관리자 로그아웃
+        </button>
+      )}
 
-  {/* 관리자 버튼: 이미지 위 투명 버튼 */}
-      <button
-        onClick={!isAdmin ? loginAdmin : logoutAdmin}
+      {/* 로고 이미지 (버튼 위에 시각적으로 표시) */}
+      <img
+        src="/2nd_Oktavia Von Seckendorff.jpg" // public에 있는 로고 JPG
+        alt="로고"
         style={{
           position: "absolute",
-          top: 0,
-          right: 16,
-          width: 120,             // 버튼 클릭 영역 가로
-          height: 90,             // 버튼 클릭 영역 높이 = 헤더 높이
-          backgroundColor: "transparent",
-          color: "transparent",
-          border: "none",
-          cursor: "pointer",
+          top: 16,
+          right: 16, // 버튼과 같은 위치
+          height: 71,
+          objectFit: "contain",
+          zIndex: 20,
+          pointerEvents: "none", // 이미지 클릭해도 버튼이 작동
         }}
-      >
-        {!isAdmin ? "관리자 로그인" : "관리자 로그아웃"}
-      </button>
+      />
     </div>
   );
 }
