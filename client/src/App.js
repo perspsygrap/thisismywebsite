@@ -570,15 +570,26 @@ const updatePost = async () => {
               )}
 
               <hr />
-<h4>댓글</h4>
+{/* <h4>댓글</h4> */}
 {currentPostComments.map((c) => (
-  <div key={c.id} style={{ marginBottom: 8, position: "relative", paddingBottom: 16 }}>
+  <div key={c.id} style={{ marginBottom: 8, position: "relative", paddingLeft: 20, paddingBottom: 20 }}>
     {editingCommentId === c.id ? (
       <>
         <textarea
           value={editCommentContent}
           onChange={(e) => setEditCommentContent(e.target.value)}
-          style={{ width: "80%", padding: 6, minHeight: 36 }}
+          style={{
+            width: "80%",
+            padding: 6,
+            minHeight: 36,
+            height: "auto",
+            overflow: "hidden",
+            resize: "none",
+          }}
+          onInput={(e) => {
+            e.target.style.height = "36px"; // 초기화
+            e.target.style.height = e.target.scrollHeight + "px"; // 내용 높이에 맞춰 자동 조정
+          }}
         />
         <button
           onClick={() => updateComment(c.id)}
@@ -596,6 +607,7 @@ const updatePost = async () => {
     ) : (
       <>
         <span
+          style={{ whiteSpace: "pre-wrap" }} // 줄바꿈 유지
           dangerouslySetInnerHTML={renderContent(c.content)}
           onClick={(e) => {
             if (e.target.tagName === "IMG") {
@@ -614,7 +626,7 @@ const updatePost = async () => {
             <button
               onClick={() => {
                 setEditingCommentId(c.id);
-                setEditCommentContent(c.content);
+                setEditCommentContent(c.content); // 순수 텍스트로 넣어 수정 시 줄바꿈 유지
               }}
               style={{ marginLeft: 6, fontSize: 12 }}
             >
@@ -645,6 +657,8 @@ const updatePost = async () => {
     </button>
   </div>
 </div>
+
+
             </>
           ) : (
             !isWelcome && <p style={{ color: "#666" }}>오른쪽에서 글을 선택하세요.</p>
@@ -654,7 +668,7 @@ const updatePost = async () => {
         {/* 오른쪽 목록: welcome 제외 */}
         {!isWelcome && (
           <div style={{ flex: 1, borderLeft: "1px solid #ddd", paddingLeft: 16 }}>
-            <h3>글 목록</h3>
+              {/* <h3>글 목록</h3> */}
             {filteredPosts.map((p) => (
               <div
                 key={p.id}
