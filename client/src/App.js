@@ -109,7 +109,7 @@ function MainPage() {
 
         editorRef.current.focus();
         document.execCommand("insertHTML", false, html);
-          // 🔴 중요: 이미지 삽입 직후 state 동기화
+          // 🔴 핵심! 중요: 이미지 삽입 직후 state 동기화
         setContent(editorRef.current.innerHTML);
       };
 
@@ -156,6 +156,11 @@ function MainPage() {
       ref={editorRef}
       contentEditable={editable}
       suppressContentEditableWarning
+
+    onDrop={handleDrop} //드래그 삽입
+    onDragOver={(e) => e.preventDefault()} //크롬 새 탭 방지(필수)
+    onPaste={handlePaste} //붙여넣기 삽입
+
       onCompositionStart={() => {
         isComposingRef.current = true;
       }}
@@ -164,8 +169,8 @@ function MainPage() {
         setContent(e.currentTarget.innerHTML);
       }}
       onInput={(e) => {
-       if (!isComposingRef.current) {
-       setContent(e.currentTarget.innerHTML);
+        if (!isComposingRef.current) {
+          setContent(e.currentTarget.innerHTML);
         }
       }}
       style={{
