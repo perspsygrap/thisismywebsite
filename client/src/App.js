@@ -130,29 +130,32 @@ function Header({ isAdmin, loginAdmin, logoutAdmin }) {
 function MainPage() {
   const navigate = useNavigate();
 
-  // 버튼별 높이 지정 가능
-  const buttonHeights = [252, 252, 252, 252]; // 원하는 px로 바꿀 수 있음
+  // 버튼 라벨 및 개별 높이 지정
+  const buttonConfigs = [
+    { label: "match!!", height: 252, topOffset: 0 },
+    { label: "text", height: 252, topOffset: 40 },  // 버튼2 아래로
+    { label: "TCC", height: 252, topOffset: 20 },   // 버튼3 버튼2보다 위
+    { label: "comment", height: 252, topOffset: 0 },// 버튼4 원위치
+  ];
 
- return (
-    <div style={{ padding: "60px 20px 20px", position: "relative" }}>
-      {CATEGORIES.map((c, index) => {
-        // 버튼별 top 오프셋: 계단식 위치
-        let topOffset = 0;
-        if (index === 1) topOffset = 40;   // 버튼2 아래로
-        if (index === 2) topOffset = 20;   // 버튼3 위로
-        if (index === 3) topOffset = 0;    // 버튼4 원위치
-
-        return (
+  return (
+    <div style={{ padding: "60px 20px 20px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        {buttonConfigs.map((btn, index) => (
           <button
-            key={c.key}
-            onClick={() => navigate(`/category/${c.key}`)}
+            key={index}
+            onClick={() => navigate(`/category/${btn.label.toLowerCase()}`)}
             style={{
-              position: "absolute",
-              left: `${index * 25}%`,         // 화면 폭 기준 배치
-              transform: "translateX(-50%)",  // 버튼 중앙 기준으로 정렬
-              top: topOffset,                 // 세로 위치 조정
-              height: `${buttonHeights[index]}px`,
-              width: "150px",                 // 너비 고정 가능
+              flex: 1,                     // 버튼 폭 균등 분배
+              height: btn.height,          // 개별 높이 적용
+              marginTop: btn.topOffset,    // 계단식 위치
+              marginLeft: index === 0 ? 0 : 10,  // 좌우 간격
+              marginRight: index === buttonConfigs.length - 1 ? 0 : 10,
               fontSize: 16,
               borderRadius: 6,
               cursor: "pointer",
@@ -160,10 +163,10 @@ function MainPage() {
               border: "1px solid #ccc",
             }}
           >
-            {c.label}
+            {btn.label}
           </button>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }
