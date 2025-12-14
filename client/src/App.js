@@ -94,19 +94,23 @@ function MainPage() {
       const editorRef = React.useRef(null);
       const isComposingRef = React.useRef(false);
 
-      // 🔹 최초 마운트 시에만 content 주입
-      useEffect(() => {
-        if (editorRef.current && editorRef.current.innerHTML !== content) {
-          editorRef.current.innerHTML = content || "";
-        }
-      }, []); // ❗ dependency 비움
+    useEffect(() => {
+      if (
+        editorRef.current &&
+        !isComposingRef.current &&
+        editorRef.current.innerHTML !== content
+      ) {
+        editorRef.current.innerHTML = content || "";
+      }
+    }, [content]);
 
       const insertHtmlAtCursor = (html) => {
         if (!editorRef.current) return;
 
         editorRef.current.focus();
-
         document.execCommand("insertHTML", false, html);
+          // 🔴 중요: 이미지 삽입 직후 state 동기화
+        setContent(editorRef.current.innerHTML);
       };
 
       const handleFiles = async (files) => {
