@@ -146,7 +146,7 @@ function MainPage() {
             key={c.key}
             style={{
               flex: 1,                      // 버튼 너비 균등 분배
-              padding: "12px 0",            // 버튼 세로 높이 확보
+              padding: "84px 0",            // 버튼 세로 높이 확보
               fontSize: 16,
               borderRadius: 6,
               cursor: "pointer",
